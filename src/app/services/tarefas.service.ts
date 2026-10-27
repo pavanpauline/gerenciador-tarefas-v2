@@ -1,7 +1,8 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { DadosTarefa, Tarefa, gerarId } from '../models/tarefa';
-import { carregarTarefas, salvarTarefas } from './armazenamento';
+import { CHAVE_TAREFAS, carregarTarefas, criarArmazenamentoEmMemoria, salvarTarefas } from './armazenamento';
 import { ARMAZENAMENTO } from './armazenamento.token';
+import { BackupNativoService } from './backup-nativo.service';
 import { calcularEstatisticas } from './estatisticas';
 import { ImpactStyle, vibrar } from './vibracao';
 
@@ -21,14 +22,26 @@ export class TarefasService {
   readonly agora = signal(new Date());
 
   private readonly armazenamento = inject(ARMAZENAMENTO);
+  private readonly backup = inject(BackupNativoService);
   private readonly lista = signal<Tarefa[]>(carregarTarefas(this.armazenamento, new Date()));
   readonly tarefas = this.lista.asReadonly();
 
   /** Recalculado só quando a lista ou o relógio mudam. */
   readonly estatisticas = computed(() => calcularEstatisticas(this.lista(), this.agora()));
 
+  /** Resolve quando a carga inicial termina (inclui a recuperação do backup nativo, no celular). */
+  readonly pronto: Promise<void>;
+
   constructor() {
-    this.salvar();
+    // No celular, se o localStorage veio vazio, tenta recuperar as tarefas do backup nativo antes de gravar
+    const semDadosLocais = this.armazenamento.getItem(CHAVE_TAREFAS) === null && this.lista().length === 0;
+    if (semDadosLocais && this.backup.ativo) {
+      this.pronto = this.recuperarBackup();
+    } else {
+      this.salvar();
+      this.pronto = Promise.resolve();
+    }
+
     const relogio = setInterval(() => this.agora.set(new Date()), 60_000);
     inject(DestroyRef).onDestroy(() => clearInterval(relogio));
   }
@@ -88,12 +101,22 @@ export class TarefasService {
     });
   }
 
+  private async recuperarBackup(): Promise<void> {
+    const copia = await this.backup.ler();
+    // Só usa o backup se o usuário não criou nada enquanto ele era lido
+    if (copia && this.lista().length === 0) {
+      this.lista.set(carregarTarefas(criarArmazenamentoEmMemoria({ [CHAVE_TAREFAS]: copia }), new Date()));
+    }
+    this.salvar();
+  }
+
   private alterarLista(alteracao: (lista: Tarefa[]) => Tarefa[]): void {
     this.lista.update(alteracao);
     this.salvar();
   }
 
   private salvar(): void {
-    salvarTarefas(this.armazenamento, this.lista());
+    const texto = salvarTarefas(this.armazenamento, this.lista());
+    void this.backup.salvar(texto);
   }
 }

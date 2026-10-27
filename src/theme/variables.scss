@@ -17,6 +17,14 @@
   // Controles nativos (calendário, relógio, barra de rolagem) seguem o tema
   color-scheme: light dark;
 
+  // Áreas seguras (notch, barra de status, barra de gestos). No Android, o Capacitor 8
+  // também entrega esses valores como --safe-area-inset-* (veja capacitor.config.ts);
+  // usamos os dois para funcionar em qualquer versão do WebView.
+  --ion-safe-area-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --ion-safe-area-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --ion-safe-area-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --ion-safe-area-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+
   // Superfícies
   --app-bg: #f5f6f8;
   --app-surface: #ffffff;

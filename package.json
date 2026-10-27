@@ -1,8 +1,7 @@
 {
   "name": "gerenciador-tarefas",
-  "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "version": "2.0.0",
+  "author": "Pauline Antonia Pavan",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -23,6 +22,7 @@
     "@capacitor/core": "8.5.3",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/keyboard": "8.0.6",
+    "@capacitor/preferences": "^8.0.1",
     "@capacitor/status-bar": "8.0.4",
     "@ionic/angular": "^9.0.0",
     "ionicons": "^8.1.0",
@@ -43,5 +43,5 @@
     "typescript-eslint": "^8.61.0",
     "vitest": "~4.0.18"
   },
-  "description": "An Ionic project"
+  "description": "Gerenciador de Tarefas Inteligente: app mobile em Ionic + Angular + Capacitor"
 }

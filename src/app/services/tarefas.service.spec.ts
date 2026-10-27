@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CHAVE_TAREFAS, criarArmazenamentoEmMemoria } from './armazenamento';
 import { ARMAZENAMENTO } from './armazenamento.token';
+import { BackupNativoService } from './backup-nativo.service';
 import { TarefasService } from './tarefas.service';
 
 describe('TarefasService', () => {
@@ -73,5 +74,46 @@ describe('TarefasService', () => {
     expect(stats).toMatchObject({ total: 2, concluidas: 1, pendentes: 1, taxaConclusao: 50 });
     expect(stats.porPrioridade.find((p) => p.prioridade === 'Alta')?.taxaConclusao).toBe(100);
     expect(stats.porCategoria.find((c) => c.categoria === 'Estudo')?.pendentes).toBe(1);
+  });
+
+  describe('no celular (backup nativo)', () => {
+    /** Backup falso: finge estar no celular e guarda o que recebe. */
+    function configurarComBackup(local: Record<string, string>, copiaNativa: string | null) {
+      const backup = { ativo: true, salvos: [] as string[], ler: async () => copiaNativa, salvar: async (texto: string) => void backup.salvos.push(texto) };
+      const armazenamentoLocal = criarArmazenamentoEmMemoria(local);
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: ARMAZENAMENTO, useValue: armazenamentoLocal },
+          { provide: BackupNativoService, useValue: backup },
+        ],
+      });
+      return { backup, armazenamentoLocal, servico: TestBed.inject(TarefasService) };
+    }
+    const copia = JSON.stringify({
+      versao: 2,
+      tarefas: [{ id: 'x', titulo: 'Recuperada', categoria: 'Estudo', prioridade: 'Alta', concluida: false, criadaEm: '2026-10-20T12:00:00.000Z' }],
+    });
+
+    it('recupera as tarefas do backup quando o localStorage foi apagado', async () => {
+      const { servico, armazenamentoLocal } = configurarComBackup({}, copia);
+      await servico.pronto;
+      expect(servico.tarefas().map((t) => t.titulo)).toEqual(['Recuperada']);
+      expect(armazenamentoLocal.getItem(CHAVE_TAREFAS)).toContain('Recuperada');
+    });
+
+    it('não usa o backup quando o localStorage tem dados', async () => {
+      const local = { [CHAVE_TAREFAS]: JSON.stringify({ versao: 2, tarefas: [] }) };
+      const { servico } = configurarComBackup(local, copia);
+      await servico.pronto;
+      expect(servico.tarefas()).toEqual([]);
+    });
+
+    it('copia cada alteração para o backup', async () => {
+      const { servico, backup } = configurarComBackup({}, null);
+      await servico.pronto;
+      await servico.adicionarTarefa({ titulo: 'Nova', categoria: 'Pessoal', prioridade: 'Baixa' });
+      expect(backup.salvos.at(-1)).toContain('Nova');
+    });
   });
 });

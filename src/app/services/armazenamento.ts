@@ -46,12 +46,15 @@ export function carregarTarefas(armazenamento: Armazenamento, agora: Date): Tare
   return [];
 }
 
-export function salvarTarefas(armazenamento: Armazenamento, tarefas: readonly Tarefa[]): void {
+/** Salva as tarefas e devolve o texto gravado (usado também pelo backup nativo). */
+export function salvarTarefas(armazenamento: Armazenamento, tarefas: readonly Tarefa[]): string {
+  const texto = JSON.stringify({ versao: VERSAO_DADOS, tarefas });
   try {
-    armazenamento.setItem(CHAVE_TAREFAS, JSON.stringify({ versao: VERSAO_DADOS, tarefas }));
+    armazenamento.setItem(CHAVE_TAREFAS, texto);
   } catch {
     // Armazenamento cheio ou bloqueado: o app continua funcionando em memória.
   }
+  return texto;
 }
 
 function lerJson(texto: string | null): unknown {
