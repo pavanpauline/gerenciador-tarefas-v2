@@ -43,9 +43,29 @@ import {
   serverOutline,
   briefcaseOutline,
   schoolOutline,
-  personOutline
+  personOutline,
+  alertCircleOutline
 } from 'ionicons/icons';
-import { TarefasService, Tarefa, ImpactStyle } from '../services/tarefas.service';
+import { TarefasService } from '../services/tarefas.service';
+import {
+  CATEGORIAS,
+  Categoria,
+  PESO_PRIORIDADE,
+  PRIORIDADES,
+  Prioridade,
+  Tarefa,
+  iconeCategoria
+} from '../models/tarefa';
+import {
+  estaAtrasada,
+  formatarDataCabecalho,
+  formatarDataCompleta,
+  formatarPrazo,
+  lerPrazo,
+  montarPrazo,
+  separarPrazo,
+  sugerirPrazo
+} from '../utils/datas';
 import { EstatisticasPage } from '../estatisticas/estatisticas.page';
 
 @Component({
@@ -89,17 +109,18 @@ export class HomePage {
   // Formulário de Nova Tarefa
   novoTitulo: string = '';
   novasNotas: string = '';
-  novaCategoria: string = 'Trabalho';
-  novaPrioridade: 'Alta' | 'Média' | 'Baixa' = 'Alta';
+  novaCategoria: Categoria = 'Trabalho';
+  novaPrioridade: Prioridade = 'Alta';
   novoPrazoData: string = '';
   novoPrazoHora: string = '';
 
   // Formulário de Edição
   editTitulo: string = '';
   editNotas: string = '';
-  editCategoria: string = 'Trabalho';
-  editPrioridade: 'Alta' | 'Média' | 'Baixa' = 'Alta';
-  editPrazo: string = '';
+  editCategoria: Categoria = 'Trabalho';
+  editPrioridade: Prioridade = 'Alta';
+  editPrazoData: string = '';
+  editPrazoHora: string = '';
 
   // Filtros e Pesquisa
   termoBusca: string = '';
@@ -111,10 +132,10 @@ export class HomePage {
   mostrarConcluidas: boolean = false;
 
   // Opções para chips
-  categoriasDisponiveis: string[] = ['Trabalho', 'Estudo', 'Pessoal'];
-  prioridadesDisponiveis: ('Alta' | 'Média' | 'Baixa')[] = ['Alta', 'Média', 'Baixa'];
+  readonly categoriasDisponiveis = CATEGORIAS;
+  readonly prioridadesDisponiveis = PRIORIDADES;
 
-  constructor(public tarefasService: TarefasService) {
+  constructor(private readonly tarefasService: TarefasService) {
     addIcons({
       searchOutline,
       flash,
@@ -140,32 +161,25 @@ export class HomePage {
       serverOutline,
       briefcaseOutline,
       schoolOutline,
-      personOutline
+      personOutline,
+      alertCircleOutline
     });
 
     this.definirDataHoraPadrao();
   }
 
   private definirDataHoraPadrao() {
-    const hoje = new Date();
-    this.novoPrazoData = hoje.toISOString().split('T')[0];
-    this.novoPrazoHora = '14:00';
+    const { data, hora } = sugerirPrazo(new Date());
+    this.novoPrazoData = data;
+    this.novoPrazoHora = hora;
   }
 
   get dataFormatada(): string {
-    const hoje = new Date();
-    const opcoes: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
-    };
-    const formatado = hoje.toLocaleDateString('pt-BR', opcoes);
-    const semFeira = formatado.replace('-feira', '');
-    return semFeira.charAt(0).toUpperCase() + semFeira.slice(1);
+    return formatarDataCabecalho(this.tarefasService.agora());
   }
 
-  get todasTarefas(): Tarefa[] {
-    return this.tarefasService.obterTarefas();
+  get todasTarefas(): readonly Tarefa[] {
+    return this.tarefasService.tarefas();
   }
 
   get tarefasConcluidas(): Tarefa[] {
@@ -202,7 +216,8 @@ export class HomePage {
 
   // Lista Filtrada Principal
   get tarefasFiltradas(): Tarefa[] {
-    let lista = this.todasTarefas;
+    // Cópia: ordenar a lista original mudaria a ordem salva no serviço.
+    let lista = [...this.todasTarefas];
 
     // Filtro de Status
     if (this.filtroStatus === 'Pendentes') {
@@ -232,15 +247,15 @@ export class HomePage {
       );
     }
 
-    // Ordenação por prioridade (Alta -> Média -> Baixa)
-    const pesoPrioridade: Record<string, number> = { 'Alta': 1, 'Média': 2, 'Baixa': 3 };
+    // Ordenação: pendentes primeiro, depois prioridade (Alta -> Média -> Baixa)
+    // e, na mesma prioridade, o prazo mais próximo (sem prazo vai para o fim).
+    const instante = (t: Tarefa) => lerPrazo(t.prazo)?.getTime() ?? Number.POSITIVE_INFINITY;
     return lista.sort((a, b) => {
       if (a.concluida !== b.concluida) {
         return a.concluida ? 1 : -1;
       }
-      const pesoA = pesoPrioridade[a.prioridade] ?? 4;
-      const pesoB = pesoPrioridade[b.prioridade] ?? 4;
-      return pesoA - pesoB;
+      const porPrioridade = PESO_PRIORIDADE[a.prioridade] - PESO_PRIORIDADE[b.prioridade];
+      return porPrioridade !== 0 ? porPrioridade : instante(a) - instante(b);
     });
   }
 
@@ -278,46 +293,15 @@ export class HomePage {
       return;
     }
 
-    const prazoFormatado = this.formatarPrazo(this.novoPrazoData, this.novoPrazoHora);
-
     this.tarefasService.adicionarTarefa({
       titulo: this.novoTitulo.trim(),
       categoria: this.novaCategoria,
       prioridade: this.novaPrioridade,
-      prazo: prazoFormatado,
+      prazo: montarPrazo(this.novoPrazoData, this.novoPrazoHora),
       notas: this.novasNotas.trim() || undefined
     });
 
     this.fecharNovaTarefaModal();
-  }
-
-  private formatarPrazo(data: string, hora: string): string {
-    if (!data) return 'Hoje, 14:00';
-    try {
-      const hoje = new Date();
-      const hojeStr = hoje.toISOString().split('T')[0];
-      const horaStr = hora ? `, ${hora}` : '';
-
-      if (data === hojeStr) {
-        return `Hoje${horaStr}`;
-      }
-
-      const amanha = new Date();
-      amanha.setDate(hoje.getDate() + 1);
-      const amanhaStr = amanha.toISOString().split('T')[0];
-      if (data === amanhaStr) {
-        return `Amanhã${horaStr}`;
-      }
-
-      const [ano, mes, dia] = data.split('-');
-      const dataObj = new Date(Number(ano), Number(mes) - 1, Number(dia));
-      const diaSemana = dataObj.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-      const diaSemanaCap = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
-
-      return `${diaSemanaCap}${horaStr}`;
-    } catch {
-      return 'Hoje, 14:00';
-    }
   }
 
   // --- 2. MODAL: DETALHES DA TAREFA ---
@@ -331,25 +315,27 @@ export class HomePage {
     this.tarefaSelecionada = null;
   }
 
+  // Atenção: o app roda sem zone.js. A tela só é redesenhada sozinha quando um signal muda
+  // ou um evento do template termina; um campo comum alterado depois de um `await`
+  // não aparece na tela. Por isso as alterações abaixo acontecem antes de esperar a vibração.
+
   alternarStatusDetalhes() {
     if (!this.tarefaSelecionada) return;
-    const novoStatus = !this.tarefaSelecionada.concluida;
-    const atualizada: Tarefa = {
-      ...this.tarefaSelecionada,
-      concluida: novoStatus
-    };
-    this.tarefasService.atualizarTarefa(atualizada);
-    this.tarefaSelecionada = atualizada;
+    const id = this.tarefaSelecionada.id;
+    void this.tarefasService.alternarConclusao(id);
+    this.atualizarSelecionada(id);
   }
 
   onCheckboxChange(tarefa: Tarefa, event: CustomEvent) {
     const concluida = event.detail.checked ?? false;
-    this.tarefasService.atualizarTarefa({
-      ...tarefa,
-      concluida
-    });
-    if (this.tarefaSelecionada && this.tarefaSelecionada.id === tarefa.id) {
-      this.tarefaSelecionada = { ...this.tarefaSelecionada, concluida };
+    void this.tarefasService.definirConclusao(tarefa.id, concluida);
+    this.atualizarSelecionada(tarefa.id);
+  }
+
+  /** Mantém o modal de detalhes mostrando a versão mais recente da tarefa. */
+  private atualizarSelecionada(id: string) {
+    if (this.tarefaSelecionada?.id === id) {
+      this.tarefaSelecionada = this.tarefasService.buscarTarefa(id) ?? null;
     }
   }
 
@@ -358,22 +344,15 @@ export class HomePage {
     if (slidingItem) {
       await slidingItem.close();
     }
-    const novoStatus = !tarefa.concluida;
-    await this.tarefasService.atualizarTarefa({
-      ...tarefa,
-      concluida: novoStatus
-    });
-    if (this.tarefaSelecionada && this.tarefaSelecionada.id === tarefa.id) {
-      this.tarefaSelecionada = { ...this.tarefaSelecionada, concluida: novoStatus };
-    }
+    void this.tarefasService.alternarConclusao(tarefa.id);
+    this.atualizarSelecionada(tarefa.id);
   }
 
   async excluirTarefa(tarefa: Tarefa, slidingItem?: IonItemSliding) {
     if (slidingItem) {
       await slidingItem.close();
     }
-    this.tarefasService.excluirTarefa(tarefa.id);
-    await this.tarefasService.dispararFeedbackTatil(ImpactStyle.Light);
+    void this.tarefasService.excluirTarefa(tarefa.id);
 
     if (this.tarefaSelecionada && this.tarefaSelecionada.id === tarefa.id) {
       this.fecharDetalhesModal();
@@ -424,7 +403,9 @@ export class HomePage {
     this.editNotas = tarefa.notas || '';
     this.editCategoria = tarefa.categoria;
     this.editPrioridade = tarefa.prioridade;
-    this.editPrazo = tarefa.prazo || 'Hoje, 14:00';
+    const { data, hora } = separarPrazo(tarefa.prazo);
+    this.editPrazoData = data;
+    this.editPrazoHora = hora;
     this.isEditarModalOpen = true;
   }
 
@@ -435,17 +416,15 @@ export class HomePage {
   salvarEdicaoTarefa() {
     if (!this.tarefaSelecionada || !this.editTitulo.trim()) return;
 
-    const atualizada: Tarefa = {
-      ...this.tarefaSelecionada,
+    const id = this.tarefaSelecionada.id;
+    this.tarefasService.atualizarTarefa(id, {
       titulo: this.editTitulo.trim(),
       notas: this.editNotas.trim() || undefined,
       categoria: this.editCategoria,
       prioridade: this.editPrioridade,
-      prazo: this.editPrazo.trim() || this.tarefaSelecionada.prazo
-    };
-
-    this.tarefasService.atualizarTarefa(atualizada);
-    this.tarefaSelecionada = atualizada;
+      prazo: montarPrazo(this.editPrazoData, this.editPrazoHora)
+    });
+    this.atualizarSelecionada(id);
     this.fecharEditarModal();
   }
 
@@ -464,15 +443,18 @@ export class HomePage {
   }
 
   getIconeCategoria(categoria: string): string {
-    switch (categoria?.toLowerCase()) {
-      case 'trabalho':
-        return 'briefcase-outline';
-      case 'estudo':
-        return 'school-outline';
-      case 'pessoal':
-        return 'person-outline';
-      default:
-        return 'folder-outline';
-    }
+    return iconeCategoria(categoria);
+  }
+
+  textoPrazo(tarefa: Tarefa): string {
+    return formatarPrazo(tarefa.prazo, this.tarefasService.agora());
+  }
+
+  estaAtrasada(tarefa: Tarefa): boolean {
+    return !tarefa.concluida && estaAtrasada(tarefa.prazo, this.tarefasService.agora());
+  }
+
+  textoCriacao(tarefa: Tarefa): string {
+    return formatarDataCompleta(tarefa.criadaEm);
   }
 }

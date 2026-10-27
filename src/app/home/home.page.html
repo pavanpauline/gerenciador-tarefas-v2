@@ -112,9 +112,20 @@
                   <div class="task-meta">
                     <span class="category-name">{{ tarefa.categoria }}</span>
                     <span class="meta-dot">•</span>
-                    <span class="deadline-wrap">
-                      <ion-icon name="time-outline" class="clock-icon"></ion-icon>
-                      {{ tarefa.prazo || 'Hoje, 14:00' }}
+                    <span
+                      class="deadline-wrap"
+                      [class.is-late]="estaAtrasada(tarefa)"
+                      [attr.title]="estaAtrasada(tarefa) ? 'Prazo vencido' : null"
+                    >
+                      <ion-icon
+                        [name]="estaAtrasada(tarefa) ? 'alert-circle-outline' : 'time-outline'"
+                        class="clock-icon"
+                        aria-hidden="true"
+                      ></ion-icon>
+                      {{ textoPrazo(tarefa) }}
+                      @if (estaAtrasada(tarefa)) {
+                        <span class="sr-only">(atrasada)</span>
+                      }
                     </span>
                   </div>
                 </div>
@@ -439,7 +450,7 @@
                 </div>
                 <div class="card-text-wrap">
                   <span class="card-mini-label">Prazo</span>
-                  <strong class="card-main-val">{{ tarefaSelecionada.prazo || 'Hoje, 14:00' }}</strong>
+                  <strong class="card-main-val" [class.is-late]="estaAtrasada(tarefaSelecionada)">{{ textoPrazo(tarefaSelecionada) }}</strong>
                 </div>
               </div>
 
@@ -461,7 +472,7 @@
                 </div>
                 <div class="card-text-wrap">
                   <span class="card-mini-label">Data de criação</span>
-                  <strong class="card-main-val">{{ tarefaSelecionada.dataCriacao || '20 de out. de 2026' }}</strong>
+                  <strong class="card-main-val">{{ textoCriacao(tarefaSelecionada) }}</strong>
                 </div>
               </div>
 
@@ -708,13 +719,25 @@
           </div>
 
           <div class="form-field-group">
-            <label class="field-label">Prazo</label>
-            <input
-              type="text"
-              [(ngModel)]="editPrazo"
-              placeholder="Ex: Hoje, 14:00"
-              class="field-input-pill"
-            />
+            <label class="field-label">Prazo <span class="field-optional">(deixe a data vazia para ficar sem prazo)</span></label>
+            <div class="datetime-grid">
+              <div class="datetime-box">
+                <span class="sub-field-label">Data</span>
+                <input
+                  type="date"
+                  [(ngModel)]="editPrazoData"
+                  class="field-input-pill date-input"
+                />
+              </div>
+              <div class="datetime-box">
+                <span class="sub-field-label">Hora</span>
+                <input
+                  type="time"
+                  [(ngModel)]="editPrazoHora"
+                  class="field-input-pill time-input"
+                />
+              </div>
+            </div>
           </div>
 
           <button

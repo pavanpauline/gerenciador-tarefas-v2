@@ -408,6 +408,12 @@
         .clock-icon {
           font-size: 12px;
         }
+
+        // Prazo vencido em vermelho
+        &.is-late {
+          color: #dc2626;
+          font-weight: 600;
+        }
       }
     }
   }
@@ -980,6 +986,10 @@ ion-modal.custom-delete-sheet-modal {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        &.is-late {
+          color: #dc2626;
+        }
       }
     }
   }

@@ -1,254 +1,99 @@
-import { Injectable } from '@angular/core';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DadosTarefa, Tarefa, gerarId } from '../models/tarefa';
+import { carregarTarefas, salvarTarefas } from './armazenamento';
+import { ARMAZENAMENTO } from './armazenamento.token';
+import { calcularEstatisticas } from './estatisticas';
+import { ImpactStyle, vibrar } from './vibracao';
 
-export { ImpactStyle };
-
-export interface Tarefa {
-  id: string;
-  titulo: string;
-  categoria: string;
-  prioridade: 'Alta' | 'Média' | 'Baixa';
-  concluida: boolean;
-  prazo?: string;
-  notas?: string;
-  dataCriacao?: string;
+/** Uma tarefa excluída e a posição em que estava, para poder desfazer. */
+export interface TarefaExcluida {
+  tarefa: Tarefa;
+  posicao: number;
 }
 
+/**
+ * Fonte única dos dados do app. As telas leem os signals `tarefas`, `estatisticas`
+ * e `agora`; só este serviço altera a lista, e toda alteração é salva na hora.
+ */
 @Injectable({ providedIn: 'root' })
 export class TarefasService {
-  private tarefas: Tarefa[] = [];
-  private readonly STORAGE_KEY = 'tarefas_salvas';
+  /** Relógio do app, atualizado a cada minuto: mantém "Hoje" e "Atrasada" corretos com o app aberto. */
+  readonly agora = signal(new Date());
+
+  private readonly armazenamento = inject(ARMAZENAMENTO);
+  private readonly lista = signal<Tarefa[]>(carregarTarefas(this.armazenamento, new Date()));
+  readonly tarefas = this.lista.asReadonly();
+
+  /** Recalculado só quando a lista ou o relógio mudam. */
+  readonly estatisticas = computed(() => calcularEstatisticas(this.lista(), this.agora()));
 
   constructor() {
-    this.carregarTarefas();
+    this.salvar();
+    const relogio = setInterval(() => this.agora.set(new Date()), 60_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(relogio));
   }
 
-  private salvarNoStorage() {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.tarefas));
+  buscarTarefa(id: string): Tarefa | undefined {
+    return this.lista().find((t) => t.id === id);
   }
 
-  private carregarTarefas() {
-    const tarefasSalvas = localStorage.getItem(this.STORAGE_KEY);
-    if (tarefasSalvas && JSON.parse(tarefasSalvas).length > 0) {
-      this.tarefas = JSON.parse(tarefasSalvas);
-    } else {
-      // Inicializa com dados de exemplo baseados no design de referência
-      this.tarefas = [
-        {
-          id: '1',
-          titulo: 'Revisar slides da apresentação',
-          categoria: 'Estudo',
-          prioridade: 'Alta',
-          concluida: false,
-          prazo: 'Hoje, 14:00',
-          notas: 'Focar na conclusão dos slides de metodologia e resultados esperados.',
-          dataCriacao: '20 de out. de 2026'
-        },
-        {
-          id: '2',
-          titulo: 'Enviar relatório semanal',
-          categoria: 'Trabalho',
-          prioridade: 'Alta',
-          concluida: false,
-          prazo: 'Hoje, 18:00',
-          notas: 'Consolidar as entregas da sprint e métricas de desempenho da equipe.',
-          dataCriacao: '19 de out. de 2026'
-        },
-        {
-          id: '3',
-          titulo: 'Revisar relatório financeiro',
-          categoria: 'Trabalho',
-          prioridade: 'Alta',
-          concluida: false,
-          prazo: 'Sex, 10:00',
-          notas: 'Verificar os centros de custo e despesas operacionais do mês.',
-          dataCriacao: '18 de out. de 2026'
-        },
-        {
-          id: '4',
-          titulo: 'Ler capítulo 4 de Estatística',
-          categoria: 'Estudo',
-          prioridade: 'Média',
-          concluida: false,
-          prazo: 'Amanhã',
-          notas: 'Fazer anotações sobre distribuições de probabilidade.',
-          dataCriacao: '17 de out. de 2026'
-        },
-        {
-          id: '5',
-          titulo: 'Organizar planilha de investimentos',
-          categoria: 'Pessoal',
-          prioridade: 'Média',
-          concluida: false,
-          prazo: 'Amanhã, 11:30',
-          notas: 'Atualizar dividendos e aportes do mês.',
-          dataCriacao: '16 de out. de 2026'
-        },
-        {
-          id: '6',
-          titulo: 'Atualizar repositório Git',
-          categoria: 'Trabalho',
-          prioridade: 'Baixa',
-          concluida: false,
-          prazo: 'Sáb, 16:00',
-          notas: 'Limpar branches antigas e atualizar a documentação no README.',
-          dataCriacao: '15 de out. de 2026'
-        },
-        {
-          id: '7',
-          titulo: 'Comprar mantimentos para a semana',
-          categoria: 'Pessoal',
-          prioridade: 'Baixa',
-          concluida: false,
-          prazo: 'Dom, 10:00',
-          notas: 'Frutas, legumes, café e itens essenciais.',
-          dataCriacao: '14 de out. de 2026'
-        },
-        {
-          id: '8',
-          titulo: 'Reunião de alinhamento com cliente',
-          categoria: 'Trabalho',
-          prioridade: 'Alta',
-          concluida: true,
-          prazo: 'Ontem',
-          notas: 'Apresentação do cronograma ajustado.',
-          dataCriacao: '13 de out. de 2026'
-        },
-        {
-          id: '9',
-          titulo: 'Resumo do artigo científico',
-          categoria: 'Estudo',
-          prioridade: 'Média',
-          concluida: true,
-          prazo: 'Ontem',
-          notas: 'Submissão para a disciplina de computação.',
-          dataCriacao: '12 de out. de 2026'
-        },
-        {
-          id: '10',
-          titulo: 'Planejamento das metas semanais',
-          categoria: 'Pessoal',
-          prioridade: 'Baixa',
-          concluida: true,
-          prazo: 'Segunda',
-          notas: 'Definição das três prioridades principais da semana.',
-          dataCriacao: '11 de out. de 2026'
-        }
-      ];
-      this.salvarNoStorage();
-    }
-  }
-
-  obterTarefas(): Tarefa[] {
-    return this.tarefas;
-  }
-
-  /**
-   * Dispara feedback tátil (vibração) utilizando @capacitor/haptics.
-   * Possui tratamento com try/catch e fallback gracioso para a Web Vibration API (navigator.vibrate),
-   * garantindo que a aplicação funcione com segurança e sem erros em ambiente web/browser.
-   */
-  async dispararFeedbackTatil(style: ImpactStyle = ImpactStyle.Medium): Promise<void> {
-    try {
-      await Haptics.impact({ style });
-    } catch {
-      try {
-        // Fallback para navegadores com suporte à Web Vibration API (ex: mobile web)
-        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-          navigator.vibrate(40);
-        }
-      } catch {
-        // Ignora silenciosamente se o navegador não permitir ou não tiver suporte
-      }
-    }
-  }
-
-  /**
-   * Método auxiliar para disparar vibração.
-   */
-  async vibrar(style: ImpactStyle = ImpactStyle.Medium): Promise<void> {
-    return this.dispararFeedbackTatil(style);
-  }
-
-  async adicionarTarefa(tarefa: Omit<Tarefa, 'id' | 'concluida'>): Promise<void> {
-    const hoje = new Date();
-    const dataCriacao = tarefa.dataCriacao || hoje.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
-    const novaTarefa: Tarefa = {
-      ...tarefa,
-      id: Date.now().toString(),
+  async adicionarTarefa(dados: DadosTarefa): Promise<Tarefa> {
+    const nova: Tarefa = {
+      ...dados,
+      id: gerarId(),
       concluida: false,
-      dataCriacao
+      criadaEm: new Date().toISOString(),
     };
-    this.tarefas.unshift(novaTarefa); // adiciona no topo
-    this.salvarNoStorage();
-    await this.dispararFeedbackTatil(ImpactStyle.Medium);
+    this.alterarLista((lista) => [nova, ...lista]);
+    await vibrar(ImpactStyle.Medium);
+    return nova;
   }
 
-  async atualizarTarefa(tarefaAtualizada: Tarefa): Promise<void> {
-    const index = this.tarefas.findIndex(t => t.id === tarefaAtualizada.id);
-    if (index !== -1) {
-      const estavaConcluida = this.tarefas[index].concluida;
-      this.tarefas[index] = tarefaAtualizada;
-      this.salvarNoStorage();
-
-      // Dispara feedback tátil quando a tarefa for marcada como concluída
-      if (!estavaConcluida && tarefaAtualizada.concluida) {
-        await this.dispararFeedbackTatil(ImpactStyle.Medium);
-      }
-    }
+  atualizarTarefa(id: string, alteracoes: Partial<DadosTarefa>): void {
+    this.alterarLista((lista) => lista.map((t) => (t.id === id ? { ...t, ...alteracoes } : t)));
   }
 
-  excluirTarefa(id: string) {
-    this.tarefas = this.tarefas.filter(t => t.id !== id);
-    this.salvarNoStorage();
+  async definirConclusao(id: string, concluida: boolean): Promise<void> {
+    const tarefa = this.buscarTarefa(id);
+    if (!tarefa || tarefa.concluida === concluida) return;
+
+    const concluidaEm = concluida ? new Date().toISOString() : undefined;
+    this.alterarLista((lista) => lista.map((t) => (t.id === id ? { ...t, concluida, concluidaEm } : t)));
+    if (concluida) await vibrar(ImpactStyle.Medium);
   }
 
-  /**
-   * Retorna métricas e estatísticas agregadas em tempo real a partir das tarefas salvas.
-   */
-  obterEstatisticas() {
-    const total = this.tarefas.length;
-    const concluidas = this.tarefas.filter(t => t.concluida).length;
-    const pendentes = total - concluidas;
-    const taxaConclusao = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+  async alternarConclusao(id: string): Promise<void> {
+    const tarefa = this.buscarTarefa(id);
+    if (tarefa) await this.definirConclusao(id, !tarefa.concluida);
+  }
 
-    // Prioridades (Alta, Média, Baixa)
-    const prioridades: ('Alta' | 'Média' | 'Baixa')[] = ['Alta', 'Média', 'Baixa'];
-    const porPrioridade = prioridades.map(prio => {
-      const tarefasPrio = this.tarefas.filter(t => t.prioridade === prio);
-      const conc = tarefasPrio.filter(t => t.concluida).length;
-      return {
-        prioridade: prio,
-        total: tarefasPrio.length,
-        concluidas: conc,
-        pendentes: tarefasPrio.length - conc,
-        taxaConclusao: tarefasPrio.length > 0 ? Math.round((conc / tarefasPrio.length) * 100) : 0,
-        percentualDoTotal: total > 0 ? Math.round((tarefasPrio.length / total) * 100) : 0
-      };
+  /** Remove a tarefa e devolve o que é preciso para desfazer a exclusão. */
+  async excluirTarefa(id: string): Promise<TarefaExcluida | undefined> {
+    const posicao = this.lista().findIndex((t) => t.id === id);
+    if (posicao === -1) return undefined;
+
+    const tarefa = this.lista()[posicao];
+    this.alterarLista((lista) => lista.filter((t) => t.id !== id));
+    await vibrar(ImpactStyle.Light);
+    return { tarefa, posicao };
+  }
+
+  /** Desfaz uma exclusão, devolvendo a tarefa à posição em que estava. */
+  restaurarTarefa({ tarefa, posicao }: TarefaExcluida): void {
+    if (this.buscarTarefa(tarefa.id)) return;
+    this.alterarLista((lista) => {
+      const copia = [...lista];
+      copia.splice(Math.min(posicao, copia.length), 0, tarefa);
+      return copia;
     });
+  }
 
-    // Categorias (Trabalho, Estudo, Pessoal)
-    const categorias = ['Trabalho', 'Estudo', 'Pessoal'];
-    const porCategoria = categorias.map(cat => {
-      const tarefasCat = this.tarefas.filter(t => t.categoria === cat);
-      const conc = tarefasCat.filter(t => t.concluida).length;
-      return {
-        categoria: cat,
-        total: tarefasCat.length,
-        concluidas: conc,
-        pendentes: tarefasCat.length - conc,
-        taxaConclusao: tarefasCat.length > 0 ? Math.round((conc / tarefasCat.length) * 100) : 0,
-        percentualDoTotal: total > 0 ? Math.round((tarefasCat.length / total) * 100) : 0
-      };
-    });
+  private alterarLista(alteracao: (lista: Tarefa[]) => Tarefa[]): void {
+    this.lista.update(alteracao);
+    this.salvar();
+  }
 
-    return {
-      total,
-      concluidas,
-      pendentes,
-      taxaConclusao,
-      porPrioridade,
-      porCategoria
-    };
+  private salvar(): void {
+    salvarTarefas(this.armazenamento, this.lista());
   }
 }

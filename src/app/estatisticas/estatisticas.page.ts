@@ -21,6 +21,7 @@ import {
   layersOutline
 } from 'ionicons/icons';
 import { TarefasService } from '../services/tarefas.service';
+import { iconeCategoria } from '../models/tarefa';
 
 @Component({
   selector: 'app-estatisticas',
@@ -37,7 +38,7 @@ export class EstatisticasPage {
   @Input() isModal: boolean = false;
   @Output() fechar = new EventEmitter<void>();
 
-  constructor(public tarefasService: TarefasService) {
+  constructor(private readonly tarefasService: TarefasService) {
     addIcons({
       statsChart,
       statsChartOutline,
@@ -57,8 +58,9 @@ export class EstatisticasPage {
     });
   }
 
+  // O serviço guarda as estatísticas num computed: ler várias vezes não refaz as contas.
   get stats() {
-    return this.tarefasService.obterEstatisticas();
+    return this.tarefasService.estatisticas();
   }
 
   get insightTexto(): string {
@@ -86,16 +88,7 @@ export class EstatisticasPage {
   }
 
   getIconeCategoria(cat: string): string {
-    switch (cat.toLowerCase()) {
-      case 'trabalho':
-        return 'briefcase-outline';
-      case 'estudo':
-        return 'school-outline';
-      case 'pessoal':
-        return 'person-outline';
-      default:
-        return 'layers-outline';
-    }
+    return iconeCategoria(cat);
   }
 
   fecharTela() {
