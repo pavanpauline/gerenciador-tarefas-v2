@@ -7,6 +7,9 @@ export const CATEGORIAS: readonly Categoria[] = ['Trabalho', 'Estudo', 'Pessoal'
 /** Peso usado na ordenação: quanto menor, mais urgente. */
 export const PESO_PRIORIDADE: Record<Prioridade, number> = { Alta: 1, Média: 2, Baixa: 3 };
 
+/** Sufixo das classes CSS de cada prioridade (sem acento): priority-alta, priority-media, priority-baixa. */
+export const CLASSE_PRIORIDADE: Record<Prioridade, string> = { Alta: 'alta', Média: 'media', Baixa: 'baixa' };
+
 const ICONE_CATEGORIA: Record<Categoria, string> = {
   Trabalho: 'briefcase-outline',
   Estudo: 'school-outline',

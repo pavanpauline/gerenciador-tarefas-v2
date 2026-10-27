@@ -36,6 +36,10 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
+/* Componentes visuais compartilhados do app (etiquetas, modais, formulários, botões).
+   Importado depois do CSS do Ionic para ter prioridade sobre ele. */
+@import 'theme/componentes';
+
 /* Texto lido só por leitores de tela (acessibilidade) */
 .sr-only {
   position: absolute;

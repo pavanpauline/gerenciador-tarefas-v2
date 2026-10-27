@@ -1,0 +1,286 @@
+// ============================================================================
+// Componentes visuais compartilhados entre as telas (etiquetas, modais,
+// campos de formulário, botões e o aviso de "Desfazer").
+// Ficam aqui, e não no .scss de uma página, porque o Angular isola os estilos
+// de cada componente: o que estiver na Home não chega aos componentes filhos.
+// ============================================================================
+
+// Etiquetas de prioridade
+.priority-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 12px;
+  }
+
+  &.priority-alta {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+  }
+
+  &.priority-media {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+  }
+
+  &.priority-baixa {
+    background: rgba(34, 197, 94, 0.12);
+    color: #16a34a;
+  }
+
+  &.tag-done {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Modais em formato "bottom sheet" (ion-modal)
+// ----------------------------------------------------------------------------
+ion-modal.custom-sheet-modal,
+ion-modal.custom-delete-sheet-modal {
+  --border-radius: 28px 28px 0 0;
+  --background: #ffffff;
+  --box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+  --handle-background: #cbd5e1;
+  --handle-width: 44px;
+  --handle-height: 5px;
+}
+
+ion-modal.stats-sheet-modal {
+  --background: #f5f6f8;
+
+  &::part(content) {
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+    overflow: hidden;
+  }
+}
+
+.sheet-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff;
+  // Respeita a barra de gestos do celular no fim do modal
+  padding: 12px 20px calc(24px + var(--ion-safe-area-bottom, 0px)) 20px;
+  box-sizing: border-box;
+}
+
+.sheet-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 16px;
+
+  .sheet-heading {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0b0f19;
+    margin: 0;
+    letter-spacing: -0.4px;
+  }
+
+  .sheet-close-icon-btn,
+  .sheet-back-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:active {
+      background: #e2e8f0;
+    }
+  }
+}
+
+.sheet-scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 12px;
+}
+
+// ----------------------------------------------------------------------------
+// Campos de formulário
+// ----------------------------------------------------------------------------
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 8px;
+
+    .field-optional {
+      font-size: 12px;
+      font-weight: 400;
+      color: #9ca3af;
+    }
+  }
+}
+
+.field-input-pill,
+.field-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #e5e7eb;
+  background: #f8fafc;
+  font-size: 15px;
+  color: #111827;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:focus {
+    border-color: #14161b;
+    background: #ffffff;
+  }
+}
+
+.field-textarea {
+  font-size: 14px;
+  resize: none;
+}
+
+// Chips de seleção (pílulas)
+.chips-selector-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .chip-select-btn {
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 9999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    ion-icon {
+      font-size: 15px;
+    }
+
+    &.is-selected {
+      background: #14161b;
+      color: #ffffff;
+      border-color: #14161b;
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  // Chips de prioridade selecionados ganham a cor da prioridade
+  .priority-chip.prio-alta.is-selected {
+    background: #dc2626;
+    border-color: #dc2626;
+  }
+
+  .priority-chip.prio-media.is-selected {
+    background: #d97706;
+    border-color: #d97706;
+  }
+
+  .priority-chip.prio-baixa.is-selected {
+    background: #16a34a;
+    border-color: #16a34a;
+  }
+}
+
+// Campos de data e hora lado a lado
+.datetime-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  .sub-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 4px;
+  }
+}
+
+// Botão grande e escuro de ação principal
+.sheet-large-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: #14161b;
+  color: #ffffff;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-top: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .lime-check-icon {
+    color: #c8ff3d;
+    font-size: 22px;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Aviso "Tarefa excluída · Desfazer" (ion-toast)
+// ----------------------------------------------------------------------------
+ion-toast.toast-desfazer {
+  --background: #14161b;
+  --color: #ffffff;
+  --button-color: #c8ff3d;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  --max-width: 560px;
+  font-weight: 600;
+
+  &::part(button) {
+    text-transform: none;
+    font-weight: 800;
+  }
+}

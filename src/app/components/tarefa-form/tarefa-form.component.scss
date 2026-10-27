@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.tarefa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// fieldset/legend agrupam os chips para leitores de tela, sem mudar o visual
+fieldset.form-field-group {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+
+  legend {
+    padding: 0;
+  }
+}
+
+.atalhos-prazo {
+  margin-bottom: 10px;
+
+  .chip-select-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+}
+
+.datetime-box {
+  display: block;
+}
+
+input:disabled {
+  opacity: 0.5;
+}

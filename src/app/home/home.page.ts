@@ -1,469 +1,262 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  IonContent,
-  IonCard,
-  IonCheckbox,
-  IonBadge,
-  IonProgressBar,
-  IonIcon,
-  IonSearchbar,
-  IonFabButton,
-  IonModal,
-  IonList,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
-  IonItem
-} from '@ionic/angular';
+import { IonContent, IonFabButton, IonIcon, IonList, IonModal, IonProgressBar, IonSearchbar, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  searchOutline,
-  flash,
-  timeOutline,
-  cellularOutline,
-  statsChartOutline,
-  listOutline,
-  optionsOutline,
   add,
-  createOutline,
-  trashOutline,
-  trash,
-  closeOutline,
+  alertCircleOutline,
+  arrowBackOutline,
+  briefcaseOutline,
+  calendarOutline,
+  cellularOutline,
+  checkmarkCircle,
   chevronDownOutline,
   chevronForwardOutline,
-  checkmarkCircle,
-  checkmarkCircleOutline,
-  checkmarkOutline,
-  arrowBackOutline,
-  arrowUndoOutline,
+  closeOutline,
+  createOutline,
+  flash,
   folderOutline,
-  calendarOutline,
-  serverOutline,
-  briefcaseOutline,
-  schoolOutline,
+  listOutline,
+  optionsOutline,
   personOutline,
-  alertCircleOutline
+  schoolOutline,
+  searchOutline,
+  serverOutline,
+  statsChartOutline,
+  timeOutline,
+  trash,
+  trashOutline,
 } from 'ionicons/icons';
-import { TarefasService } from '../services/tarefas.service';
-import {
-  CATEGORIAS,
-  Categoria,
-  PESO_PRIORIDADE,
-  PRIORIDADES,
-  Prioridade,
-  Tarefa,
-  iconeCategoria
-} from '../models/tarefa';
-import {
-  estaAtrasada,
-  formatarDataCabecalho,
-  formatarDataCompleta,
-  formatarPrazo,
-  lerPrazo,
-  montarPrazo,
-  separarPrazo,
-  sugerirPrazo
-} from '../utils/datas';
+import { TarefaCardComponent } from '../components/tarefa-card/tarefa-card.component';
+import { TarefaFormComponent } from '../components/tarefa-form/tarefa-form.component';
 import { EstatisticasPage } from '../estatisticas/estatisticas.page';
+import { CATEGORIAS, CLASSE_PRIORIDADE, Categoria, DadosTarefa, PRIORIDADES, Prioridade, Tarefa, iconeCategoria } from '../models/tarefa';
+import {
+  FiltroStatus,
+  Filtros,
+  OPCOES_STATUS,
+  filtrarTarefas,
+  ordenarConcluidas,
+  ordenarPendentes,
+  temFiltroAtivo,
+} from '../services/filtros';
+import { escolherSugestao } from '../services/sugestao';
+import { TarefaExcluida, TarefasService } from '../services/tarefas.service';
+import { estaAtrasada, formatarDataCabecalho, formatarDataCompleta, formatarPrazo } from '../utils/datas';
 
+/**
+ * Tela principal. Todo o estado é feito de signals: a tela se atualiza sozinha
+ * quando a lista, os filtros ou o relógio mudam (o app roda sem zone.js).
+ */
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     IonContent,
-    IonCard,
-    IonCheckbox,
-    IonBadge,
     IonProgressBar,
     IonIcon,
     IonSearchbar,
     IonFabButton,
     IonModal,
     IonList,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
-    IonItem,
-    EstatisticasPage
+    TarefaCardComponent,
+    TarefaFormComponent,
+    EstatisticasPage,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
-  // Controle de Abertura dos Bottom Sheets (ion-modal)
-  isNovaTarefaModalOpen: boolean = false;
-  isDetalhesModalOpen: boolean = false;
-  isExcluirModalOpen: boolean = false;
-  isFiltrosModalOpen: boolean = false;
-  isEditarModalOpen: boolean = false;
-  isEstatisticasModalOpen: boolean = false;
+  private readonly tarefasService = inject(TarefasService);
+  private readonly toastController = inject(ToastController);
 
-  // Tarefas em foco
-  tarefaSelecionada: Tarefa | null = null;
-  tarefaParaExcluir: Tarefa | null = null;
+  readonly agora = this.tarefasService.agora;
+  readonly dataFormatada = computed(() => formatarDataCabecalho(this.agora()));
 
-  // Formulário de Nova Tarefa
-  novoTitulo: string = '';
-  novasNotas: string = '';
-  novaCategoria: Categoria = 'Trabalho';
-  novaPrioridade: Prioridade = 'Alta';
-  novoPrazoData: string = '';
-  novoPrazoHora: string = '';
+  // --- Modais (bottom sheets) abertos ---
+  readonly novaTarefaAberta = signal(false);
+  readonly detalhesAberto = signal(false);
+  readonly editarAberto = signal(false);
+  readonly excluirAberto = signal(false);
+  readonly filtrosAberto = signal(false);
+  readonly estatisticasAberto = signal(false);
+  readonly mostrarConcluidas = signal(false);
 
-  // Formulário de Edição
-  editTitulo: string = '';
-  editNotas: string = '';
-  editCategoria: Categoria = 'Trabalho';
-  editPrioridade: Prioridade = 'Alta';
-  editPrazoData: string = '';
-  editPrazoHora: string = '';
+  // --- Tarefa em foco: guardamos só o id; os dados vêm sempre atualizados do serviço ---
+  private readonly idSelecionado = signal<string | null>(null);
+  readonly tarefaSelecionada = computed(() => {
+    const id = this.idSelecionado();
+    return id ? (this.tarefasService.buscarTarefa(id) ?? null) : null;
+  });
 
-  // Filtros e Pesquisa
-  termoBusca: string = '';
-  filtroStatus: 'Todas' | 'Pendentes' | 'Concluídas' = 'Todas';
-  filtroPrioridade: string = 'Todas';
-  filtroCategoria: string = 'Todas';
+  // --- Filtros e busca ---
+  readonly termoBusca = signal('');
+  readonly filtroStatus = signal<FiltroStatus>('Todas');
+  readonly filtroPrioridade = signal<Prioridade | 'Todas'>('Todas');
+  readonly filtroCategoria = signal<Categoria | 'Todas'>('Todas');
+  private readonly filtros = computed<Filtros>(() => ({
+    termo: this.termoBusca(),
+    status: this.filtroStatus(),
+    prioridade: this.filtroPrioridade(),
+    categoria: this.filtroCategoria(),
+  }));
+  readonly temFiltroAtivo = computed(() => temFiltroAtivo(this.filtros()));
+  readonly resumoFiltros = computed(() => {
+    const f = this.filtros();
+    return [
+      f.status !== 'Todas' ? f.status : '',
+      f.prioridade !== 'Todas' ? f.prioridade : '',
+      f.categoria !== 'Todas' ? f.categoria : '',
+      f.termo.trim() ? `"${f.termo.trim()}"` : '',
+    ]
+      .filter(Boolean)
+      .join(' • ');
+  });
 
-  // Seções retráteis
-  mostrarConcluidas: boolean = false;
+  readonly opcoesStatus = OPCOES_STATUS;
+  readonly opcoesPrioridade: readonly (Prioridade | 'Todas')[] = ['Todas', ...PRIORIDADES];
+  readonly opcoesCategoria: readonly (Categoria | 'Todas')[] = ['Todas', ...CATEGORIAS];
+  readonly classePrioridade = CLASSE_PRIORIDADE;
 
-  // Opções para chips
-  readonly categoriasDisponiveis = CATEGORIAS;
-  readonly prioridadesDisponiveis = PRIORIDADES;
+  // --- Listas (recalculadas só quando a lista ou os filtros mudam) ---
+  private readonly filtradas = computed(() => filtrarTarefas(this.tarefasService.tarefas(), this.filtros()));
+  readonly pendentes = computed(() => ordenarPendentes(this.filtradas().filter((t) => !t.concluida)));
+  readonly concluidas = computed(() => ordenarConcluidas(this.filtradas().filter((t) => t.concluida)));
+  readonly totalFiltradas = computed(() => this.filtradas().length);
 
-  constructor(private readonly tarefasService: TarefasService) {
+  // --- Progresso (sempre sobre todas as tarefas, sem filtro) ---
+  readonly totalTarefas = computed(() => this.tarefasService.tarefas().length);
+  readonly totalConcluidas = computed(() => this.tarefasService.tarefas().filter((t) => t.concluida).length);
+  readonly porcentagemProgresso = computed(() =>
+    this.totalTarefas() ? Math.round((this.totalConcluidas() / this.totalTarefas()) * 100) : 0,
+  );
+
+  /** A tarefa que o app recomenda fazer agora, com o motivo. */
+  readonly sugestao = computed(() => escolherSugestao(this.tarefasService.tarefas(), this.agora()));
+
+  /** Aviso de "Desfazer" aberto no momento (só um por vez). */
+  private avisoDesfazer: HTMLIonToastElement | null = null;
+
+  constructor() {
     addIcons({
-      searchOutline,
-      flash,
-      timeOutline,
-      cellularOutline,
-      statsChartOutline,
-      listOutline,
-      optionsOutline,
       add,
-      createOutline,
-      trashOutline,
-      trash,
-      closeOutline,
+      alertCircleOutline,
+      arrowBackOutline,
+      briefcaseOutline,
+      calendarOutline,
+      cellularOutline,
+      checkmarkCircle,
       chevronDownOutline,
       chevronForwardOutline,
-      checkmarkCircle,
-      checkmarkCircleOutline,
-      checkmarkOutline,
-      arrowBackOutline,
-      arrowUndoOutline,
+      closeOutline,
+      createOutline,
+      flash,
       folderOutline,
-      calendarOutline,
-      serverOutline,
-      briefcaseOutline,
-      schoolOutline,
+      listOutline,
+      optionsOutline,
       personOutline,
-      alertCircleOutline
-    });
-
-    this.definirDataHoraPadrao();
-  }
-
-  private definirDataHoraPadrao() {
-    const { data, hora } = sugerirPrazo(new Date());
-    this.novoPrazoData = data;
-    this.novoPrazoHora = hora;
-  }
-
-  get dataFormatada(): string {
-    return formatarDataCabecalho(this.tarefasService.agora());
-  }
-
-  get todasTarefas(): readonly Tarefa[] {
-    return this.tarefasService.tarefas();
-  }
-
-  get tarefasConcluidas(): Tarefa[] {
-    return this.todasTarefas.filter(t => t.concluida);
-  }
-
-  get totalTarefas(): number {
-    return this.todasTarefas.length;
-  }
-
-  get totalConcluidas(): number {
-    return this.tarefasConcluidas.length;
-  }
-
-  get porcentagemProgresso(): number {
-    if (this.totalTarefas === 0) return 0;
-    return Math.round((this.totalConcluidas / this.totalTarefas) * 100);
-  }
-
-  get valorProgresso(): number {
-    if (this.totalTarefas === 0) return 0;
-    return this.totalConcluidas / this.totalTarefas;
-  }
-
-  get sugestaoTarefa(): Tarefa | null {
-    const pendentes = this.todasTarefas.filter(t => !t.concluida);
-    if (pendentes.length === 0) return null;
-    const alta = pendentes.find(t => t.prioridade === 'Alta');
-    if (alta) return alta;
-    const media = pendentes.find(t => t.prioridade === 'Média');
-    if (media) return media;
-    return pendentes[0];
-  }
-
-  // Lista Filtrada Principal
-  get tarefasFiltradas(): Tarefa[] {
-    // Cópia: ordenar a lista original mudaria a ordem salva no serviço.
-    let lista = [...this.todasTarefas];
-
-    // Filtro de Status
-    if (this.filtroStatus === 'Pendentes') {
-      lista = lista.filter(t => !t.concluida);
-    } else if (this.filtroStatus === 'Concluídas') {
-      lista = lista.filter(t => t.concluida);
-    }
-
-    // Filtro de Prioridade
-    if (this.filtroPrioridade !== 'Todas') {
-      lista = lista.filter(t => t.prioridade === this.filtroPrioridade);
-    }
-
-    // Filtro de Categoria
-    if (this.filtroCategoria !== 'Todas') {
-      lista = lista.filter(t => t.categoria === this.filtroCategoria);
-    }
-
-    // Busca textual
-    if (this.termoBusca && this.termoBusca.trim() !== '') {
-      const termo = this.termoBusca.toLowerCase().trim();
-      lista = lista.filter(t =>
-        t.titulo.toLowerCase().includes(termo) ||
-        t.categoria.toLowerCase().includes(termo) ||
-        t.prioridade.toLowerCase().includes(termo) ||
-        (t.notas && t.notas.toLowerCase().includes(termo))
-      );
-    }
-
-    // Ordenação: pendentes primeiro, depois prioridade (Alta -> Média -> Baixa)
-    // e, na mesma prioridade, o prazo mais próximo (sem prazo vai para o fim).
-    const instante = (t: Tarefa) => lerPrazo(t.prazo)?.getTime() ?? Number.POSITIVE_INFINITY;
-    return lista.sort((a, b) => {
-      if (a.concluida !== b.concluida) {
-        return a.concluida ? 1 : -1;
-      }
-      const porPrioridade = PESO_PRIORIDADE[a.prioridade] - PESO_PRIORIDADE[b.prioridade];
-      return porPrioridade !== 0 ? porPrioridade : instante(a) - instante(b);
+      schoolOutline,
+      searchOutline,
+      serverOutline,
+      statsChartOutline,
+      timeOutline,
+      trash,
+      trashOutline,
     });
   }
 
-  get tarefasPendentes(): Tarefa[] {
-    return this.tarefasFiltradas.filter(t => !t.concluida);
+  // --- Ações sobre as tarefas ---
+
+  abrirDetalhes(tarefa: Tarefa) {
+    this.idSelecionado.set(tarefa.id);
+    this.detalhesAberto.set(true);
   }
 
-  get tarefasConcluidasFiltradas(): Tarefa[] {
-    return this.tarefasFiltradas.filter(t => t.concluida);
+  alternarConclusao(tarefa: Tarefa) {
+    void this.tarefasService.alternarConclusao(tarefa.id);
   }
 
-  get temFiltroAtivo(): boolean {
-    return this.filtroStatus !== 'Todas' ||
-           this.filtroPrioridade !== 'Todas' ||
-           this.filtroCategoria !== 'Todas' ||
-           !!(this.termoBusca && this.termoBusca.trim() !== '');
+  /** Exclui na hora e oferece "Desfazer" por alguns segundos. */
+  async excluir(tarefa: Tarefa) {
+    if (this.idSelecionado() === tarefa.id) {
+      this.detalhesAberto.set(false);
+      this.excluirAberto.set(false);
+    }
+    const excluida = await this.tarefasService.excluirTarefa(tarefa.id);
+    if (excluida) await this.mostrarAvisoDesfazer(excluida);
   }
+
+  private async mostrarAvisoDesfazer(excluida: TarefaExcluida) {
+    await this.avisoDesfazer?.dismiss();
+    const aviso = await this.toastController.create({
+      message: `"${excluida.tarefa.titulo}" foi excluída`,
+      duration: 5000,
+      position: 'bottom',
+      positionAnchor: 'rodape-flutuante',
+      cssClass: 'toast-desfazer',
+      buttons: [{ text: 'Desfazer', handler: () => this.tarefasService.restaurarTarefa(excluida) }],
+    });
+    this.avisoDesfazer = aviso;
+    await aviso.present();
+  }
+
+  // --- Modal: sugestão / nova tarefa ---
 
   /** Toque na sugestão: abre a tarefa sugerida ou, com a lista vazia, o formulário de nova tarefa. */
   abrirSugestao() {
-    if (this.sugestaoTarefa) {
-      this.abrirDetalhesModal(this.sugestaoTarefa);
-    } else if (this.totalTarefas === 0) {
-      this.abrirNovaTarefaModal();
-    }
+    const sugestao = this.sugestao();
+    if (sugestao) this.abrirDetalhes(sugestao.tarefa);
+    else if (this.totalTarefas() === 0) this.novaTarefaAberta.set(true);
   }
 
-  // --- 1. MODAL: NOVA TAREFA ---
-  abrirNovaTarefaModal() {
-    this.definirDataHoraPadrao();
-    this.novoTitulo = '';
-    this.novasNotas = '';
-    this.novaCategoria = 'Trabalho';
-    this.novaPrioridade = 'Alta';
-    this.isNovaTarefaModalOpen = true;
+  criarTarefa(dados: DadosTarefa) {
+    void this.tarefasService.adicionarTarefa(dados);
+    this.novaTarefaAberta.set(false);
   }
 
-  fecharNovaTarefaModal() {
-    this.isNovaTarefaModalOpen = false;
+  // --- Modal: detalhes, edição e exclusão ---
+
+  fecharDetalhes() {
+    this.detalhesAberto.set(false);
   }
 
-  salvarNovaTarefa() {
-    if (!this.novoTitulo || this.novoTitulo.trim() === '') {
-      return;
-    }
-
-    this.tarefasService.adicionarTarefa({
-      titulo: this.novoTitulo.trim(),
-      categoria: this.novaCategoria,
-      prioridade: this.novaPrioridade,
-      prazo: montarPrazo(this.novoPrazoData, this.novoPrazoHora),
-      notas: this.novasNotas.trim() || undefined
-    });
-
-    this.fecharNovaTarefaModal();
+  salvarEdicao(dados: DadosTarefa) {
+    const tarefa = this.tarefaSelecionada();
+    if (tarefa) this.tarefasService.atualizarTarefa(tarefa.id, dados);
+    this.editarAberto.set(false);
   }
 
-  // --- 2. MODAL: DETALHES DA TAREFA ---
-  abrirDetalhesModal(tarefa: Tarefa) {
-    this.tarefaSelecionada = tarefa;
-    this.isDetalhesModalOpen = true;
+  confirmarExclusao() {
+    const tarefa = this.tarefaSelecionada();
+    this.excluirAberto.set(false);
+    if (tarefa) void this.excluir(tarefa);
   }
 
-  fecharDetalhesModal() {
-    this.isDetalhesModalOpen = false;
-    this.tarefaSelecionada = null;
-  }
-
-  // Atenção: o app roda sem zone.js. A tela só é redesenhada sozinha quando um signal muda
-  // ou um evento do template termina; um campo comum alterado depois de um `await`
-  // não aparece na tela. Por isso as alterações abaixo acontecem antes de esperar a vibração.
-
-  alternarStatusDetalhes() {
-    if (!this.tarefaSelecionada) return;
-    const id = this.tarefaSelecionada.id;
-    void this.tarefasService.alternarConclusao(id);
-    this.atualizarSelecionada(id);
-  }
-
-  onCheckboxChange(tarefa: Tarefa, event: CustomEvent) {
-    const concluida = event.detail.checked ?? false;
-    void this.tarefasService.definirConclusao(tarefa.id, concluida);
-    this.atualizarSelecionada(tarefa.id);
-  }
-
-  /** Mantém o modal de detalhes mostrando a versão mais recente da tarefa. */
-  private atualizarSelecionada(id: string) {
-    if (this.tarefaSelecionada?.id === id) {
-      this.tarefaSelecionada = this.tarefasService.buscarTarefa(id) ?? null;
-    }
-  }
-
-  // --- AÇÕES RÁPIDAS COM GESTO DE DESLIZAR (SWIPE) ---
-  async concluirTarefa(tarefa: Tarefa, slidingItem?: IonItemSliding) {
-    if (slidingItem) {
-      await slidingItem.close();
-    }
-    void this.tarefasService.alternarConclusao(tarefa.id);
-    this.atualizarSelecionada(tarefa.id);
-  }
-
-  async excluirTarefa(tarefa: Tarefa, slidingItem?: IonItemSliding) {
-    if (slidingItem) {
-      await slidingItem.close();
-    }
-    void this.tarefasService.excluirTarefa(tarefa.id);
-
-    if (this.tarefaSelecionada && this.tarefaSelecionada.id === tarefa.id) {
-      this.fecharDetalhesModal();
-    }
-    if (this.tarefaParaExcluir && this.tarefaParaExcluir.id === tarefa.id) {
-      this.fecharExcluirModal();
-    }
-  }
-
-  // --- 3. MODAL DE EXCLUSÃO ---
-  solicitarExclusao(tarefa: Tarefa) {
-    this.tarefaParaExcluir = tarefa;
-    this.isExcluirModalOpen = true;
-  }
-
-  fecharExcluirModal() {
-    this.isExcluirModalOpen = false;
-    this.tarefaParaExcluir = null;
-  }
-
-  confirmarExcluirTarefa() {
-    if (this.tarefaParaExcluir) {
-      this.excluirTarefa(this.tarefaParaExcluir);
-      this.fecharExcluirModal();
-    }
-  }
-
-  // --- 4. MODAL: PESQUISA E FILTROS ---
-  abrirFiltrosModal() {
-    this.isFiltrosModalOpen = true;
-  }
-
-  fecharFiltrosModal() {
-    this.isFiltrosModalOpen = false;
-  }
+  // --- Filtros ---
 
   limparFiltros() {
-    this.termoBusca = '';
-    this.filtroStatus = 'Todas';
-    this.filtroPrioridade = 'Todas';
-    this.filtroCategoria = 'Todas';
+    this.termoBusca.set('');
+    this.filtroStatus.set('Todas');
+    this.filtroPrioridade.set('Todas');
+    this.filtroCategoria.set('Todas');
   }
 
-  // --- 5. MODAL DE EDIÇÃO ---
-  abrirEditarTarefa(tarefa: Tarefa) {
-    this.tarefaSelecionada = tarefa;
-    this.editTitulo = tarefa.titulo;
-    this.editNotas = tarefa.notas || '';
-    this.editCategoria = tarefa.categoria;
-    this.editPrioridade = tarefa.prioridade;
-    const { data, hora } = separarPrazo(tarefa.prazo);
-    this.editPrazoData = data;
-    this.editPrazoHora = hora;
-    this.isEditarModalOpen = true;
-  }
+  // --- Auxiliares do template ---
 
-  fecharEditarModal() {
-    this.isEditarModalOpen = false;
-  }
-
-  salvarEdicaoTarefa() {
-    if (!this.tarefaSelecionada || !this.editTitulo.trim()) return;
-
-    const id = this.tarefaSelecionada.id;
-    this.tarefasService.atualizarTarefa(id, {
-      titulo: this.editTitulo.trim(),
-      notas: this.editNotas.trim() || undefined,
-      categoria: this.editCategoria,
-      prioridade: this.editPrioridade,
-      prazo: montarPrazo(this.editPrazoData, this.editPrazoHora)
-    });
-    this.atualizarSelecionada(id);
-    this.fecharEditarModal();
-  }
-
-  // --- 6. MODAL: ESTATÍSTICAS / DASHBOARD ---
-  abrirEstatisticasModal() {
-    this.isEstatisticasModalOpen = true;
-  }
-
-  fecharEstatisticasModal() {
-    this.isEstatisticasModalOpen = false;
-  }
-
-  // Auxiliares
-  alternarMostrarConcluidas() {
-    this.mostrarConcluidas = !this.mostrarConcluidas;
-  }
-
-  getIconeCategoria(categoria: string): string {
+  iconeCategoria(categoria: string) {
     return iconeCategoria(categoria);
   }
 
-  textoPrazo(tarefa: Tarefa): string {
-    return formatarPrazo(tarefa.prazo, this.tarefasService.agora());
+  textoPrazo(tarefa: Tarefa) {
+    return formatarPrazo(tarefa.prazo, this.agora());
   }
 
-  estaAtrasada(tarefa: Tarefa): boolean {
-    return !tarefa.concluida && estaAtrasada(tarefa.prazo, this.tarefasService.agora());
+  estaAtrasada(tarefa: Tarefa) {
+    return !tarefa.concluida && estaAtrasada(tarefa.prazo, this.agora());
   }
 
-  textoCriacao(tarefa: Tarefa): string {
-    return formatarDataCompleta(tarefa.criadaEm);
+  textoData(iso: string | undefined) {
+    return formatarDataCompleta(iso);
   }
 }

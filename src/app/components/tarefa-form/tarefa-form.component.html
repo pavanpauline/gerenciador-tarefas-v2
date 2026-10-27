@@ -1,0 +1,90 @@
+<form class="tarefa-form" (ngSubmit)="enviar()">
+  <div class="form-field-group">
+    <label class="field-label" for="tarefa-titulo">Título da tarefa</label>
+    <input
+      id="tarefa-titulo"
+      name="titulo"
+      type="text"
+      class="field-input-pill"
+      placeholder="Ex: Revisar slides da apresentação"
+      maxlength="120"
+      autocomplete="off"
+      [(ngModel)]="titulo"
+    />
+  </div>
+
+  <div class="form-field-group">
+    <label class="field-label" for="tarefa-notas">Notas <span class="field-optional">(opcional)</span></label>
+    <textarea
+      id="tarefa-notas"
+      name="notas"
+      rows="3"
+      class="field-textarea"
+      placeholder="Detalhes, observações ou links úteis..."
+      [(ngModel)]="notas"
+    ></textarea>
+  </div>
+
+  <fieldset class="form-field-group">
+    <legend class="field-label">Categoria</legend>
+    <div class="chips-selector-row">
+      @for (cat of categorias; track cat) {
+        <button
+          type="button"
+          class="chip-select-btn"
+          [class.is-selected]="categoria() === cat"
+          [attr.aria-pressed]="categoria() === cat"
+          (click)="categoria.set(cat)"
+        >
+          <ion-icon [name]="iconeCategoria(cat)" aria-hidden="true"></ion-icon>
+          <span>{{ cat }}</span>
+        </button>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="form-field-group">
+    <legend class="field-label">Prioridade</legend>
+    <div class="chips-selector-row">
+      @for (prio of prioridades; track prio) {
+        <button
+          type="button"
+          class="chip-select-btn priority-chip"
+          [class]="'prio-' + classePrioridade[prio]"
+          [class.is-selected]="prioridade() === prio"
+          [attr.aria-pressed]="prioridade() === prio"
+          (click)="prioridade.set(prio)"
+        >
+          <ion-icon name="cellular-outline" aria-hidden="true"></ion-icon>
+          <span>{{ prio }}</span>
+        </button>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="form-field-group">
+    <legend class="field-label">Prazo</legend>
+    <div class="chips-selector-row atalhos-prazo">
+      <button type="button" class="chip-select-btn" [class.is-selected]="atalhoAtivo() === 'hoje'" (click)="usarAtalho('hoje')">Hoje</button>
+      <button type="button" class="chip-select-btn" [class.is-selected]="atalhoAtivo() === 'amanha'" (click)="usarAtalho('amanha')">Amanhã</button>
+      <button type="button" class="chip-select-btn" [class.is-selected]="atalhoAtivo() === 'sem-prazo'" (click)="usarAtalho('sem-prazo')">Sem prazo</button>
+    </div>
+    <div class="datetime-grid">
+      <label class="datetime-box">
+        <span class="sub-field-label">Data</span>
+        <input name="data" type="date" class="field-input-pill" [(ngModel)]="data" />
+      </label>
+      <label class="datetime-box">
+        <span class="sub-field-label">Hora <span class="field-optional">(opcional)</span></span>
+        <input name="hora" type="time" class="field-input-pill" [(ngModel)]="hora" [disabled]="!data()" />
+      </label>
+    </div>
+  </fieldset>
+
+  <button type="submit" class="sheet-large-btn" [disabled]="!valido()">
+    @if (iconeBotao(); as icone) {
+      <ion-icon [name]="icone" aria-hidden="true"></ion-icon>
+    }
+    <span>{{ textoBotao() }}</span>
+  </button>
+</form>
