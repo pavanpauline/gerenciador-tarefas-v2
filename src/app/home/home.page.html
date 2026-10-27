@@ -163,6 +163,7 @@
   <!-- ======================================================== -->
   <ion-modal
     [isOpen]="novaTarefaAberta()"
+    aria-label="Nova tarefa"
     (didDismiss)="novaTarefaAberta.set(false)"
     [initialBreakpoint]="0.9"
     [breakpoints]="[0, 0.5, 0.9, 1]"
@@ -189,6 +190,7 @@
   <!-- ======================================================== -->
   <ion-modal
     [isOpen]="detalhesAberto()"
+    aria-label="Detalhes da tarefa"
     (didDismiss)="fecharDetalhes()"
     [initialBreakpoint]="0.75"
     [breakpoints]="[0, 0.5, 0.75, 1]"
@@ -291,6 +293,7 @@
   <!-- ======================================================== -->
   <ion-modal
     [isOpen]="excluirAberto()"
+    aria-label="Confirmar exclusão"
     (didDismiss)="excluirAberto.set(false)"
     [initialBreakpoint]="0.45"
     [breakpoints]="[0, 0.45]"
@@ -320,6 +323,7 @@
   <!-- ======================================================== -->
   <ion-modal
     [isOpen]="filtrosAberto()"
+    aria-label="Pesquisa e filtros"
     (didDismiss)="filtrosAberto.set(false)"
     [initialBreakpoint]="0.75"
     [breakpoints]="[0, 0.5, 0.75, 1]"
@@ -412,6 +416,7 @@
   <!-- ======================================================== -->
   <ion-modal
     [isOpen]="editarAberto()"
+    aria-label="Editar tarefa"
     (didDismiss)="editarAberto.set(false)"
     [initialBreakpoint]="0.9"
     [breakpoints]="[0, 0.5, 0.9, 1]"
@@ -445,6 +450,7 @@
   <!-- ======================================================== -->
   <ion-modal
     [isOpen]="estatisticasAberto()"
+    aria-label="Estatísticas"
     (didDismiss)="estatisticasAberto.set(false)"
     [initialBreakpoint]="0.92"
     [breakpoints]="[0, 0.5, 0.92, 1]"

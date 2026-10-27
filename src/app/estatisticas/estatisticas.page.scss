@@ -1,10 +1,10 @@
 .stats-screen-wrapper {
-  background: #f5f6f8;
-  color: #0d121c;
+  background: var(--app-bg);
+  color: var(--app-text);
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--app-fonte);
 
   &.is-modal-view {
     border-top-left-radius: 28px;
@@ -33,11 +33,11 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #64748b;
+      color: var(--app-text-muted);
       margin-bottom: 4px;
 
       ion-icon {
-        color: #10b981;
+        color: var(--app-success);
         font-size: 13px;
       }
     }
@@ -45,7 +45,7 @@
     .main-stats-title {
       font-size: 26px;
       font-weight: 800;
-      color: #0b0f19;
+      color: var(--app-text);
       margin: 0;
       letter-spacing: -0.6px;
     }
@@ -55,13 +55,13 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: var(--app-surface);
+    border: 1px solid var(--app-card-border);
+    box-shadow: var(--app-shadow-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #111827;
+    color: var(--app-text);
     font-size: 20px;
     cursor: pointer;
     text-decoration: none;
@@ -69,7 +69,7 @@
 
     &:active {
       transform: scale(0.92);
-      background: #f0f1f4;
+      background: var(--app-surface-3);
     }
   }
 }
@@ -86,11 +86,12 @@
 // 1. Cartão Principal de Destaque
 .highlight-stats-card {
   position: relative;
-  background: #14161b;
+  background: var(--app-ink);
+  border: 1px solid var(--app-ink-border);
   border-radius: 24px;
   padding: 24px 22px;
   color: #ffffff;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+  box-shadow: var(--app-shadow-lg);
   margin-bottom: 24px;
   overflow: hidden;
 
@@ -113,7 +114,7 @@
     .highlight-caption {
       font-size: 13px;
       font-weight: 500;
-      color: #8e95a2;
+      color: var(--app-on-ink-muted);
       display: block;
       margin-bottom: 4px;
     }
@@ -129,7 +130,7 @@
     .highlight-percentage {
       font-size: 38px;
       font-weight: 800;
-      color: #c8ff3d;
+      color: var(--app-accent);
       letter-spacing: -1px;
       line-height: 1;
     }
@@ -139,14 +140,14 @@
   .custom-progress-track {
     width: 100%;
     height: 10px;
-    background: #232730;
+    background: var(--app-ink-3);
     border-radius: 9999px;
     overflow: hidden;
     margin-bottom: 20px;
 
     .progress-fill {
       height: 100%;
-      background: #c8ff3d;
+      background: var(--app-accent);
       border-radius: 9999px;
       transition: width 0.4s ease;
     }
@@ -160,7 +161,7 @@
     margin-bottom: 16px;
 
     .summary-pill {
-      background: #1d2129;
+      background: var(--app-ink-2);
       border-radius: 14px;
       padding: 10px 12px;
       display: flex;
@@ -174,13 +175,13 @@
         margin-bottom: 6px;
 
         &.dot-total { background: #94a3b8; }
-        &.dot-done { background: #c8ff3d; }
+        &.dot-done { background: var(--app-accent); }
         &.dot-pending { background: #f59e0b; }
       }
 
       .pill-label {
         font-size: 11px;
-        color: #8e95a2;
+        color: var(--app-on-ink-muted);
         font-weight: 500;
         margin-bottom: 2px;
       }
@@ -195,7 +196,7 @@
 
   // Insight Inteligente
   .smart-insight-box {
-    background: #1d2129;
+    background: var(--app-ink-2);
     border-radius: 16px;
     padding: 12px 14px;
     display: flex;
@@ -203,7 +204,7 @@
     gap: 12px;
 
     .insight-icon-circle {
-      background: #c8ff3d;
+      background: var(--app-accent);
       width: 34px;
       height: 34px;
       min-width: 34px;
@@ -213,7 +214,7 @@
       justify-content: center;
 
       ion-icon {
-        color: #14161b;
+        color: var(--app-on-accent);
         font-size: 18px;
       }
     }
@@ -245,13 +246,13 @@
 
       ion-icon {
         font-size: 18px;
-        color: #0b0f19;
+        color: var(--app-text);
       }
 
       .section-heading {
         font-size: 17px;
         font-weight: 700;
-        color: #0b0f19;
+        color: var(--app-text);
         margin: 0;
         letter-spacing: -0.3px;
       }
@@ -260,8 +261,8 @@
     .section-tag {
       font-size: 12px;
       font-weight: 600;
-      color: #64748b;
-      background: #e2e8f0;
+      color: var(--app-text-2);
+      background: var(--app-border);
       padding: 3px 10px;
       border-radius: 9999px;
     }
@@ -276,11 +277,11 @@
 }
 
 .priority-metric-card {
-  background: #ffffff;
+  background: var(--app-surface);
   border-radius: 18px;
   padding: 16px 18px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-card-border);
 
   .prio-card-header {
     display: flex;
@@ -304,39 +305,39 @@
 
     .prio-percent-tag {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--app-text-muted);
       font-weight: 600;
     }
   }
 
   &.prio-alta {
     .prio-badge-wrap {
-      background: rgba(239, 68, 68, 0.12);
-      color: #dc2626;
+      background: var(--prio-alta-bg);
+      color: var(--prio-alta);
     }
     .mini-fill {
-      background: #dc2626;
+      background: var(--prio-alta-solid);
     }
   }
 
   &.prio-média,
   &.prio-media {
     .prio-badge-wrap {
-      background: rgba(245, 158, 11, 0.12);
-      color: #d97706;
+      background: var(--prio-media-bg);
+      color: var(--prio-media);
     }
     .mini-fill {
-      background: #d97706;
+      background: var(--prio-media-solid);
     }
   }
 
   &.prio-baixa {
     .prio-badge-wrap {
-      background: rgba(34, 197, 94, 0.12);
-      color: #16a34a;
+      background: var(--prio-baixa-bg);
+      color: var(--prio-baixa);
     }
     .mini-fill {
-      background: #16a34a;
+      background: var(--prio-baixa-solid);
     }
   }
 
@@ -354,12 +355,12 @@
       .count-number {
         font-size: 24px;
         font-weight: 800;
-        color: #0b0f19;
+        color: var(--app-text);
       }
 
       .count-sublabel {
         font-size: 13px;
-        color: #8e95a2;
+        color: var(--app-text-muted);
         font-weight: 500;
       }
     }
@@ -382,13 +383,13 @@
         }
 
         &.done {
-          color: #16a34a;
-          .split-dot { background: #16a34a; }
+          color: var(--app-success);
+          .split-dot { background: var(--app-success); }
         }
 
         &.pending {
-          color: #64748b;
-          .split-dot { background: #cbd5e1; }
+          color: var(--app-text-muted);
+          .split-dot { background: var(--app-border-strong); }
         }
       }
     }
@@ -397,7 +398,7 @@
   .mini-progress-bar {
     width: 100%;
     height: 6px;
-    background: #f1f5f9;
+    background: var(--app-surface-3);
     border-radius: 9999px;
     overflow: hidden;
     margin-bottom: 8px;
@@ -413,10 +414,10 @@
     display: flex;
     justify-content: space-between;
     font-size: 11px;
-    color: #8e95a2;
+    color: var(--app-text-muted);
 
     strong {
-      color: #0b0f19;
+      color: var(--app-text);
       font-weight: 700;
     }
   }
@@ -430,11 +431,11 @@
 }
 
 .category-metric-card {
-  background: #ffffff;
+  background: var(--app-surface);
   border-radius: 18px;
   padding: 16px 18px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-card-border);
 
   .cat-card-top {
     display: flex;
@@ -452,18 +453,18 @@
       font-size: 20px;
 
       &.cat-badge-trabalho {
-        background: rgba(14, 165, 233, 0.12);
-        color: #0284c7;
+        background: var(--cat-trabalho-bg);
+        color: var(--cat-trabalho);
       }
 
       &.cat-badge-estudo {
-        background: rgba(168, 85, 247, 0.12);
-        color: #9333ea;
+        background: var(--cat-estudo-bg);
+        color: var(--cat-estudo);
       }
 
       &.cat-badge-pessoal {
-        background: rgba(249, 115, 22, 0.12);
-        color: #ea580c;
+        background: var(--cat-pessoal-bg);
+        color: var(--cat-pessoal);
       }
     }
 
@@ -473,13 +474,13 @@
       .cat-name {
         font-size: 15px;
         font-weight: 700;
-        color: #0b0f19;
+        color: var(--app-text);
         margin: 0 0 2px 0;
       }
 
       .cat-total-meta {
         font-size: 12px;
-        color: #8e95a2;
+        color: var(--app-text-muted);
         font-weight: 500;
       }
     }
@@ -487,14 +488,14 @@
     .cat-percent-circle {
       font-size: 18px;
       font-weight: 800;
-      color: #0b0f19;
+      color: var(--app-text);
     }
   }
 
   .mini-progress-bar {
     width: 100%;
     height: 6px;
-    background: #f1f5f9;
+    background: var(--app-surface-3);
     border-radius: 9999px;
     overflow: hidden;
     margin-bottom: 10px;
@@ -504,9 +505,9 @@
       border-radius: 9999px;
       transition: width 0.3s ease;
 
-      &.fill-trabalho { background: #0284c7; }
-      &.fill-estudo { background: #9333ea; }
-      &.fill-pessoal { background: #ea580c; }
+      &.fill-trabalho { background: var(--cat-trabalho-solid); }
+      &.fill-estudo { background: var(--cat-estudo-solid); }
+      &.fill-pessoal { background: var(--cat-pessoal-solid); }
     }
   }
 
@@ -524,8 +525,8 @@
       font-weight: 600;
 
       &.pill-green {
-        background: rgba(34, 197, 94, 0.1);
-        color: #16a34a;
+        background: var(--app-success-bg);
+        color: var(--app-success);
 
         .mini-icon-check {
           font-weight: 800;
@@ -533,8 +534,8 @@
       }
 
       &.pill-gray {
-        background: #f1f5f9;
-        color: #64748b;
+        background: var(--app-surface-3);
+        color: var(--app-text-muted);
 
         .mini-icon-clock {
           font-size: 8px;

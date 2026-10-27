@@ -36,19 +36,4 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
-/* Componentes visuais compartilhados do app (etiquetas, modais, formulários, botões).
-   Importado depois do CSS do Ionic para ter prioridade sobre ele. */
-@import 'theme/componentes';
-
-/* Texto lido só por leitores de tela (acessibilidade) */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+/* Cores do app e componentes compartilhados: src/theme/variables.scss e src/theme/componentes.scss */

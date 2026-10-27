@@ -1,2 +1,142 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// ============================================================================
+// TEMA DO APP
+// Todas as cores ficam aqui, como variáveis CSS (--app-...). Os outros arquivos
+// de estilo usam var(--app-...) e nunca uma cor fixa: por isso o modo escuro é
+// só trocar os valores no bloco "prefers-color-scheme: dark" lá embaixo.
+// Toda combinação de texto e fundo foi conferida com o contraste mínimo de
+// acessibilidade (WCAG AA, 4,5:1).
+// Docs do Ionic sobre temas: https://ionicframework.com/docs/theming/
+// ============================================================================
+
+// Componentes visuais compartilhados (etiquetas, modais, formulários, botões).
+// Este arquivo entra depois do global.scss (veja "styles" no angular.json),
+// então esses estilos têm prioridade sobre o CSS padrão do Ionic.
+@use 'componentes';
+
+:root {
+  // Controles nativos (calendário, relógio, barra de rolagem) seguem o tema
+  color-scheme: light dark;
+
+  // Superfícies
+  --app-bg: #f5f6f8;
+  --app-surface: #ffffff;
+  --app-surface-2: #f8fafc;
+  --app-surface-3: #f1f5f9;
+  --app-border: #e2e8f0;
+  --app-border-strong: #cbd5e1;
+  --app-card-border: rgba(0, 0, 0, 0.04);
+
+  // Texto
+  --app-text: #0b0f19;
+  --app-text-2: #475569;
+  --app-text-muted: #636b78;
+
+  // Identidade visual: superfícies escuras (card de progresso, barra de navegação,
+  // botão +, card do dashboard) com o verde-limão de destaque
+  --app-ink: #14161b;
+  --app-ink-2: #1d2129;
+  --app-ink-3: #232730;
+  --app-ink-border: transparent;
+  --app-on-ink: #ffffff;
+  --app-on-ink-muted: #9aa1ad;
+  --app-accent: #c8ff3d;
+  --app-on-accent: #14161b;
+
+  // Destaque "forte": botão principal, chips selecionados, checkbox marcado
+  --app-strong: #14161b;
+  --app-on-strong: #ffffff;
+  --app-on-strong-accent: #c8ff3d;
+
+  // Estados
+  --app-danger: #c81e1e;
+  --app-danger-solid: #dc2626;
+  --app-danger-bg: #fee2e2;
+  --app-success: #15803d;
+  --app-success-solid: #047857;
+  --app-success-bg: #dcfce7;
+  --app-warning-solid: #b45309;
+  --app-neutral-solid: #475569;
+
+  // Prioridades: texto e fundo das etiquetas; "solid" é o fundo dos chips selecionados
+  --prio-alta: #b91c1c;
+  --prio-alta-bg: rgba(239, 68, 68, 0.12);
+  --prio-alta-solid: #dc2626;
+  --prio-media: #a14a06;
+  --prio-media-bg: rgba(245, 158, 11, 0.12);
+  --prio-media-solid: #b45309;
+  --prio-baixa: #15803d;
+  --prio-baixa-bg: rgba(34, 197, 94, 0.12);
+  --prio-baixa-solid: #15803d;
+
+  // Categorias (dashboard)
+  --cat-trabalho: #0369a1;
+  --cat-trabalho-bg: rgba(14, 165, 233, 0.12);
+  --cat-trabalho-solid: #0284c7;
+  --cat-estudo: #7e22ce;
+  --cat-estudo-bg: rgba(168, 85, 247, 0.12);
+  --cat-estudo-solid: #9333ea;
+  --cat-pessoal: #c2410c;
+  --cat-pessoal-bg: rgba(249, 115, 22, 0.12);
+  --cat-pessoal-solid: #ea580c;
+
+  // Sombras e contorno de foco (teclado)
+  --app-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --app-shadow-md: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --app-shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.14);
+  --app-shadow-float: 0 10px 28px rgba(0, 0, 0, 0.28);
+  --app-focus: #14161b;
+
+  --app-fonte: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+// Modo escuro: segue a configuração do aparelho, como o dark.system.css do Ionic
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-bg: #0e1015;
+    --app-surface: #171a21;
+    --app-surface-2: #1e222b;
+    --app-surface-3: #262b35;
+    --app-border: #2b313c;
+    --app-border-strong: #3d4451;
+    --app-card-border: #252a33;
+
+    --app-text: #f3f5f8;
+    --app-text-2: #c3cad6;
+    --app-text-muted: #9aa3b2;
+
+    --app-ink: #1b1f27;
+    --app-ink-2: #252a34;
+    --app-ink-3: #313744;
+    --app-ink-border: #2b313c;
+
+    // No escuro, o destaque forte vira o verde-limão com texto escuro
+    --app-strong: #c8ff3d;
+    --app-on-strong: #14161b;
+    --app-on-strong-accent: #14161b;
+
+    --app-danger: #f87171;
+    --app-danger-bg: rgba(248, 113, 113, 0.16);
+    --app-success: #4ade80;
+    --app-success-bg: rgba(74, 222, 128, 0.16);
+
+    --prio-alta: #fca5a5;
+    --prio-alta-bg: rgba(248, 113, 113, 0.16);
+    --prio-media: #fcd34d;
+    --prio-media-bg: rgba(251, 191, 36, 0.16);
+    --prio-baixa: #86efac;
+    --prio-baixa-bg: rgba(74, 222, 128, 0.16);
+
+    --cat-trabalho: #7dd3fc;
+    --cat-trabalho-bg: rgba(14, 165, 233, 0.16);
+    --cat-estudo: #d8b4fe;
+    --cat-estudo-bg: rgba(168, 85, 247, 0.16);
+    --cat-pessoal: #fdba74;
+    --cat-pessoal-bg: rgba(249, 115, 22, 0.16);
+
+    --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --app-shadow-md: 0 2px 10px rgba(0, 0, 0, 0.35);
+    --app-shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.45);
+    --app-shadow-float: 0 10px 28px rgba(0, 0, 0, 0.55);
+    --app-focus: #c8ff3d;
+  }
+}
