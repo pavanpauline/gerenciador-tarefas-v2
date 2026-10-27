@@ -1,7 +1,19 @@
+// O componente ocupa toda a altura disponível (do modal ou da página).
+// Sem isso a área de rolagem não tem limite de altura e o fim do dashboard fica cortado.
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .stats-screen-wrapper {
   background: var(--app-bg);
   color: var(--app-text);
-  min-height: 100%;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   font-family: var(--app-fonte);
@@ -9,8 +21,6 @@
   &.is-modal-view {
     border-top-left-radius: 28px;
     border-top-right-radius: 28px;
-    height: 100%;
-    overflow: hidden;
   }
 }
 
@@ -75,12 +85,14 @@
 }
 
 .stats-scroll-body {
-  padding: 0 20px 30px 20px;
+  padding: 0 20px calc(30px + var(--ion-safe-area-bottom, 0px)) 20px;
   max-width: 600px;
   width: 100%;
   margin: 0 auto;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 // 1. Cartão Principal de Destaque
@@ -259,13 +271,268 @@
     }
 
     .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       font-size: 12px;
       font-weight: 600;
       color: var(--app-text-2);
       background: var(--app-border);
       padding: 3px 10px;
       border-radius: 9999px;
+
+      // "3 dias seguidos": a chama segue a cor de alerta (laranja)
+      &.streak-tag ion-icon {
+        color: var(--cat-pessoal-solid);
+        font-size: 13px;
+      }
     }
+  }
+}
+
+// Cartões claros das seções novas (mesmo visual dos cards de prioridade)
+.activity-card,
+.upcoming-card,
+.deadline-tile {
+  background: var(--app-surface);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-shadow-sm);
+  border-radius: 20px;
+}
+
+// ----------------------------------------------------------------------------
+// Últimos 7 dias: gráfico de barras feito só com CSS (sem biblioteca)
+// ----------------------------------------------------------------------------
+.activity-card {
+  padding: 16px 18px 14px;
+}
+
+.activity-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+
+  .activity-total {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--app-text);
+    letter-spacing: -0.5px;
+  }
+
+  .activity-label {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--app-text-2);
+  }
+
+  .activity-variation {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--app-text-muted);
+
+    &.is-up {
+      color: var(--app-success);
+    }
+  }
+}
+
+.activity-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+
+  .chart-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chart-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--app-text-2);
+  }
+
+  // Área de altura fixa: a barra ocupa a % do dia com mais conclusões
+  .chart-bar-area {
+    width: 100%;
+    height: 96px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .chart-bar {
+    width: 100%;
+    max-width: 28px;
+    min-height: 4px;
+    border-radius: 8px 8px 4px 4px;
+    background: var(--app-border-strong);
+    transition: height 0.3s ease;
+
+    &.is-empty {
+      background: var(--app-border);
+    }
+  }
+
+  .chart-day {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--app-text-muted);
+  }
+
+  // Hoje em destaque
+  .chart-col.is-today {
+    .chart-bar:not(.is-empty) {
+      background: var(--app-strong);
+    }
+
+    .chart-value,
+    .chart-day {
+      color: var(--app-text);
+      font-weight: 800;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Prazos: três números + lista dos próximos
+// ----------------------------------------------------------------------------
+.deadline-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.deadline-tile {
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .tile-number {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--app-text);
+    letter-spacing: -0.5px;
+  }
+
+  .tile-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--app-text-muted);
+  }
+
+  &.is-alert {
+    background: var(--app-danger-bg);
+    border-color: transparent;
+
+    .tile-number,
+    .tile-label {
+      color: var(--app-danger);
+    }
+  }
+
+  &.is-warning {
+    background: var(--prio-media-bg);
+    border-color: transparent;
+
+    .tile-number,
+    .tile-label {
+      color: var(--prio-media);
+    }
+  }
+}
+
+.upcoming-card {
+  padding: 8px;
+
+  .upcoming-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--app-text-2);
+    margin: 8px 10px 6px;
+  }
+
+  .upcoming-empty {
+    margin: 4px 10px 12px;
+    font-size: 13px;
+    color: var(--app-text-muted);
+  }
+}
+
+// Cada item é um botão: abre os detalhes da tarefa
+.upcoming-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 14px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:active {
+    background: var(--app-surface-3);
+  }
+
+  .upcoming-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 10px;
+    background: var(--app-surface-3);
+    color: var(--app-text-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+
+    &.is-late {
+      background: var(--app-danger-bg);
+      color: var(--app-danger);
+    }
+  }
+
+  .upcoming-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .upcoming-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--app-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .upcoming-meta {
+    font-size: 12px;
+    color: var(--app-text-muted);
+
+    .is-late {
+      color: var(--app-danger);
+      font-weight: 600;
+    }
+  }
+
+  .upcoming-chevron {
+    color: var(--app-text-muted);
+    font-size: 16px;
   }
 }
 

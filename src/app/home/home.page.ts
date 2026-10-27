@@ -201,6 +201,12 @@ export class HomePage {
     await aviso.present();
   }
 
+  /** Toque numa tarefa da lista de prazos do dashboard: fecha o dashboard e abre os detalhes. */
+  abrirDaEstatistica(tarefa: Tarefa) {
+    this.estatisticasAberto.set(false);
+    this.abrirDetalhes(tarefa);
+  }
+
   // --- Modal: sugestão / nova tarefa ---
 
   /** Toque na sugestão: abre a tarefa sugerida ou, com a lista vazia, o formulário de nova tarefa. */

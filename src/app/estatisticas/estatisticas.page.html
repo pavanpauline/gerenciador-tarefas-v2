@@ -1,92 +1,176 @@
-<div class="stats-screen-wrapper" [class.is-modal-view]="isModal">
+@let e = estatisticas();
 
-  <!-- Cabeçalho do Dashboard -->
+<div class="stats-screen-wrapper" [class.is-modal-view]="isModal()">
+
+  <!-- Cabeçalho -->
   <header class="stats-header">
     <div class="header-titles">
       <div class="header-badge">
-        <ion-icon name="stats-chart"></ion-icon>
+        <ion-icon name="stats-chart" aria-hidden="true"></ion-icon>
         <span>Dashboard em tempo real</span>
       </div>
       <h1 class="main-stats-title">Estatísticas</h1>
     </div>
-    @if (isModal) {
+    @if (isModal()) {
       <button class="circle-close-btn" (click)="fecharTela()" aria-label="Fechar">
-        <ion-icon name="close-outline"></ion-icon>
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     } @else {
-      <a routerLink="/home" class="circle-close-btn" aria-label="Voltar para tarefas">
-        <ion-icon name="arrow-back-outline"></ion-icon>
+      <a routerLink="/home" class="circle-close-btn" aria-label="Voltar para as tarefas">
+        <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
       </a>
     }
   </header>
 
   <div class="stats-scroll-body ion-content-scroll-host">
-    
-    <!-- 1. Cartão Principal: Taxa de Conclusão Global -->
-    <section class="highlight-stats-card">
-      <div class="card-glow-bg"></div>
+
+    <!-- 1. Taxa de conclusão + resumo + frase de incentivo -->
+    <section class="highlight-stats-card" aria-label="Resumo">
+      <div class="card-glow-bg" aria-hidden="true"></div>
 
       <div class="highlight-top-row">
         <div class="highlight-info">
-          <span class="highlight-caption">Taxa de Conclusão</span>
-          <h2 class="highlight-subtitle">
-            {{ stats.concluidas }} de {{ stats.total }} concluídas
-          </h2>
+          <span class="highlight-caption">Taxa de conclusão</span>
+          <h2 class="highlight-subtitle">{{ e.concluidas }} de {{ e.total }} concluídas</h2>
         </div>
-        <div class="highlight-percentage">
-          {{ stats.taxaConclusao }}%
-        </div>
+        <div class="highlight-percentage">{{ e.taxaConclusao }}%</div>
       </div>
 
-      <!-- Barra de Progresso Personalizada (Verde-Limão) -->
-      <div class="custom-progress-track">
-        <div class="progress-fill" [style.width.%]="stats.taxaConclusao"></div>
+      <div class="custom-progress-track" aria-hidden="true">
+        <div class="progress-fill" [style.width.%]="e.taxaConclusao"></div>
       </div>
 
-      <!-- Badges de Resumo em Pílula -->
       <div class="summary-pills-row">
-        <div class="summary-pill pill-total">
-          <span class="pill-dot dot-total"></span>
+        <div class="summary-pill">
+          <span class="pill-dot dot-total" aria-hidden="true"></span>
           <span class="pill-label">Total</span>
-          <strong class="pill-value">{{ stats.total }}</strong>
+          <strong class="pill-value">{{ e.total }}</strong>
         </div>
-        <div class="summary-pill pill-done">
-          <span class="pill-dot dot-done"></span>
+        <div class="summary-pill">
+          <span class="pill-dot dot-done" aria-hidden="true"></span>
           <span class="pill-label">Concluídas</span>
-          <strong class="pill-value">{{ stats.concluidas }}</strong>
+          <strong class="pill-value">{{ e.concluidas }}</strong>
         </div>
-        <div class="summary-pill pill-pending">
-          <span class="pill-dot dot-pending"></span>
+        <div class="summary-pill">
+          <span class="pill-dot dot-pending" aria-hidden="true"></span>
           <span class="pill-label">Pendentes</span>
-          <strong class="pill-value">{{ stats.pendentes }}</strong>
+          <strong class="pill-value">{{ e.pendentes }}</strong>
         </div>
       </div>
 
-      <!-- Insight Inteligente de Produtividade -->
       <div class="smart-insight-box">
-        <div class="insight-icon-circle">
+        <div class="insight-icon-circle" aria-hidden="true">
           <ion-icon name="flash"></ion-icon>
         </div>
-        <p class="insight-text">{{ insightTexto }}</p>
+        <p class="insight-text" aria-live="polite">{{ insight() }}</p>
       </div>
     </section>
 
-    <!-- 2. Seção: Distribuição por Prioridade -->
+    <!-- 2. Atividade dos últimos 7 dias -->
     <section class="stats-section">
       <div class="section-title-row">
         <div class="title-with-icon">
-          <ion-icon name="flag-outline"></ion-icon>
-          <h2 class="section-heading">Distribuição por Prioridade</h2>
+          <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
+          <h2 class="section-heading">Últimos 7 dias</h2>
         </div>
-        <span class="section-tag">{{ stats.total }} tarefas</span>
+        @if (e.sequenciaDias > 0) {
+          <span class="section-tag streak-tag">
+            <ion-icon name="flame" aria-hidden="true"></ion-icon>
+            {{ e.sequenciaDias }} {{ e.sequenciaDias === 1 ? 'dia' : 'dias' }} seguidos
+          </span>
+        }
+      </div>
+
+      <div class="activity-card">
+        <div class="activity-summary">
+          <span class="activity-total">{{ e.concluidasSemana }}</span>
+          <span class="activity-label">
+            {{ e.concluidasSemana === 1 ? 'tarefa concluída' : 'tarefas concluídas' }}
+            @if (variacaoSemana() !== 0) {
+              <span class="activity-variation" [class.is-up]="variacaoSemana() > 0">
+                {{ variacaoSemana() > 0 ? '+' : '' }}{{ variacaoSemana() }} vs semana anterior
+              </span>
+            }
+          </span>
+        </div>
+
+        <div class="activity-chart" role="img" [attr.aria-label]="descricaoGrafico()">
+          @for (dia of e.ultimos7Dias; track dia.data) {
+            <div class="chart-col" [class.is-today]="dia.ehHoje" aria-hidden="true">
+              <span class="chart-value">{{ dia.concluidas }}</span>
+              <div class="chart-bar-area">
+                <div class="chart-bar" [class.is-empty]="dia.concluidas === 0" [style.height.%]="(dia.concluidas / maiorDia()) * 100"></div>
+              </div>
+              <span class="chart-day">{{ dia.ehHoje ? 'Hoje' : dia.rotulo }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Prazos -->
+    <section class="stats-section">
+      <div class="section-title-row">
+        <div class="title-with-icon">
+          <ion-icon name="alarm-outline" aria-hidden="true"></ion-icon>
+          <h2 class="section-heading">Prazos</h2>
+        </div>
+      </div>
+
+      <div class="deadline-tiles">
+        <div class="deadline-tile" [class.is-alert]="e.atrasadas > 0">
+          <strong class="tile-number">{{ e.atrasadas }}</strong>
+          <span class="tile-label">{{ e.atrasadas === 1 ? 'Atrasada' : 'Atrasadas' }}</span>
+        </div>
+        <div class="deadline-tile" [class.is-warning]="e.venceHoje > 0">
+          <strong class="tile-number">{{ e.venceHoje }}</strong>
+          <span class="tile-label">{{ e.venceHoje === 1 ? 'Vence hoje' : 'Vencem hoje' }}</span>
+        </div>
+        <div class="deadline-tile">
+          <strong class="tile-number">{{ e.proximos7Dias }}</strong>
+          <span class="tile-label">Próximos 7 dias</span>
+        </div>
+      </div>
+
+      <div class="upcoming-card">
+        <h3 class="upcoming-title">Próximos prazos</h3>
+        @for (tarefa of e.proximosPrazos; track tarefa.id) {
+          <button type="button" class="upcoming-item" (click)="abrirTarefa.emit(tarefa)">
+            <span class="upcoming-icon" [class.is-late]="estaAtrasada(tarefa)" aria-hidden="true">
+              <ion-icon [name]="estaAtrasada(tarefa) ? 'alert-circle-outline' : 'time-outline'"></ion-icon>
+            </span>
+            <span class="upcoming-text">
+              <span class="upcoming-name">{{ tarefa.titulo }}</span>
+              <span class="upcoming-meta">
+                {{ tarefa.categoria }} ·
+                <span [class.is-late]="estaAtrasada(tarefa)">{{ textoPrazo(tarefa) }}{{ estaAtrasada(tarefa) ? ' (atrasada)' : '' }}</span>
+              </span>
+            </span>
+            <span [class]="'priority-tag priority-' + classePrioridade[tarefa.prioridade]">{{ tarefa.prioridade }}</span>
+            <ion-icon name="chevron-forward-outline" class="upcoming-chevron" aria-hidden="true"></ion-icon>
+          </button>
+        } @empty {
+          <p class="upcoming-empty">Nenhuma tarefa pendente com prazo.</p>
+        }
+      </div>
+    </section>
+
+    <!-- 4. Distribuição por prioridade -->
+    <section class="stats-section">
+      <div class="section-title-row">
+        <div class="title-with-icon">
+          <ion-icon name="flag-outline" aria-hidden="true"></ion-icon>
+          <h2 class="section-heading">Por prioridade</h2>
+        </div>
+        <span class="section-tag">{{ e.total }} {{ e.total === 1 ? 'tarefa' : 'tarefas' }}</span>
       </div>
 
       <div class="priority-cards-grid">
-        @for (item of stats.porPrioridade; track item.prioridade) {
-          <div class="priority-metric-card" [ngClass]="'prio-' + item.prioridade.toLowerCase()">
+        @for (item of e.porPrioridade; track item.prioridade) {
+          <div class="priority-metric-card" [class]="'prio-' + classePrioridade[item.prioridade]">
             <div class="prio-card-header">
               <div class="prio-badge-wrap">
-                <ion-icon name="cellular-outline"></ion-icon>
+                <ion-icon name="cellular-outline" aria-hidden="true"></ion-icon>
                 <span>{{ item.prioridade }}</span>
               </div>
               <span class="prio-percent-tag">{{ item.percentualDoTotal }}% do total</span>
@@ -95,22 +179,21 @@
             <div class="prio-counts-row">
               <div class="prio-big-count">
                 <span class="count-number">{{ item.total }}</span>
-                <span class="count-sublabel">tarefas</span>
+                <span class="count-sublabel">{{ item.total === 1 ? 'tarefa' : 'tarefas' }}</span>
               </div>
               <div class="prio-status-split">
                 <div class="split-item done">
-                  <span class="split-dot"></span>
+                  <span class="split-dot" aria-hidden="true"></span>
                   <span>{{ item.concluidas }} concl.</span>
                 </div>
                 <div class="split-item pending">
-                  <span class="split-dot"></span>
+                  <span class="split-dot" aria-hidden="true"></span>
                   <span>{{ item.pendentes }} pend.</span>
                 </div>
               </div>
             </div>
 
-            <!-- Barra de Progresso da Prioridade -->
-            <div class="mini-progress-bar">
+            <div class="mini-progress-bar" aria-hidden="true">
               <div class="mini-fill" [style.width.%]="item.taxaConclusao"></div>
             </div>
             <div class="prio-footer-meta">
@@ -122,50 +205,44 @@
       </div>
     </section>
 
-    <!-- 3. Seção: Métricas por Categoria -->
+    <!-- 5. Métricas por categoria -->
     <section class="stats-section">
       <div class="section-title-row">
         <div class="title-with-icon">
-          <ion-icon name="layers-outline"></ion-icon>
-          <h2 class="section-heading">Métricas por Categoria</h2>
+          <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+          <h2 class="section-heading">Por categoria</h2>
         </div>
-        <span class="section-tag">Foco: {{ categoriaMaisAtiva }}</span>
+        <span class="section-tag">Foco: {{ categoriaMaisAtiva() }}</span>
       </div>
 
       <div class="category-cards-grid">
-        @for (cat of stats.porCategoria; track cat.categoria) {
+        @for (cat of e.porCategoria; track cat.categoria) {
           <div class="category-metric-card">
             <div class="cat-card-top">
-              <div class="cat-icon-badge" [ngClass]="'cat-badge-' + cat.categoria.toLowerCase()">
-                <ion-icon [name]="getIconeCategoria(cat.categoria)"></ion-icon>
+              <div class="cat-icon-badge" [class]="'cat-badge-' + cat.categoria.toLowerCase()" aria-hidden="true">
+                <ion-icon [name]="iconeCategoria(cat.categoria)"></ion-icon>
               </div>
               <div class="cat-title-wrap">
                 <h3 class="cat-name">{{ cat.categoria }}</h3>
-                <span class="cat-total-meta">{{ cat.total }} tarefa(s)</span>
+                <span class="cat-total-meta">{{ cat.total }} {{ cat.total === 1 ? 'tarefa' : 'tarefas' }}</span>
               </div>
               <div class="cat-percent-circle">
                 <span>{{ cat.taxaConclusao }}%</span>
               </div>
             </div>
 
-            <!-- Barra de Progresso Horizontal -->
-            <div class="mini-progress-bar">
-              <div
-                class="mini-fill cat-fill"
-                [ngClass]="'fill-' + cat.categoria.toLowerCase()"
-                [style.width.%]="cat.taxaConclusao"
-              ></div>
+            <div class="mini-progress-bar" aria-hidden="true">
+              <div class="mini-fill cat-fill" [class]="'fill-' + cat.categoria.toLowerCase()" [style.width.%]="cat.taxaConclusao"></div>
             </div>
 
-            <!-- Detalhes Concluídas vs Pendentes -->
             <div class="cat-details-row">
               <div class="cat-detail-pill pill-green">
-                <span class="mini-icon-check">✓</span>
-                <span>{{ cat.concluidas }} concluída(s)</span>
+                <span class="mini-icon-check" aria-hidden="true">✓</span>
+                <span>{{ cat.concluidas }} {{ cat.concluidas === 1 ? 'concluída' : 'concluídas' }}</span>
               </div>
               <div class="cat-detail-pill pill-gray">
-                <span class="mini-icon-clock">●</span>
-                <span>{{ cat.pendentes }} pendente(s)</span>
+                <span class="mini-icon-clock" aria-hidden="true">●</span>
+                <span>{{ cat.pendentes }} {{ cat.pendentes === 1 ? 'pendente' : 'pendentes' }}</span>
               </div>
             </div>
           </div>
@@ -174,6 +251,5 @@
     </section>
 
     <div class="stats-bottom-spacer"></div>
-
   </div>
 </div>

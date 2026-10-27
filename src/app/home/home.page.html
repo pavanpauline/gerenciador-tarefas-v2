@@ -458,7 +458,11 @@
     class="custom-sheet-modal stats-sheet-modal"
   >
     <ng-template>
-      <app-estatisticas [isModal]="true" (fechar)="estatisticasAberto.set(false)"></app-estatisticas>
+      <app-estatisticas
+        [isModal]="true"
+        (fechar)="estatisticasAberto.set(false)"
+        (abrirTarefa)="abrirDaEstatistica($event)"
+      ></app-estatisticas>
     </ng-template>
   </ion-modal>
 
