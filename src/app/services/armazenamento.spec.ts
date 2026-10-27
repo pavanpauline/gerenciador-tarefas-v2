@@ -11,20 +11,19 @@ import {
 const AGORA = new Date(2026, 9, 26, 10, 30);
 
 describe('armazenamento', () => {
-  it('cria as tarefas de exemplo quando não há nada salvo', () => {
-    const tarefas = carregarTarefas(criarArmazenamento(), AGORA);
-    expect(tarefas.length).toBe(10);
-    expect(tarefas.filter((t) => t.concluida).length).toBe(3);
+  it('começa sem nenhuma tarefa quando não há nada salvo', () => {
+    expect(carregarTarefas(criarArmazenamento(), AGORA)).toEqual([]);
   });
 
-  it('respeita uma lista vazia: os exemplos não voltam depois que tudo foi apagado', () => {
-    const armazenamento = criarArmazenamento({ [CHAVE_TAREFAS]: JSON.stringify({ versao: 2, tarefas: [] }) });
-    expect(carregarTarefas(armazenamento, AGORA)).toEqual([]);
+  it('lê as tarefas salvas no formato novo', () => {
+    const salva = { id: 'a', titulo: 'Estudar', categoria: 'Estudo', prioridade: 'Alta', concluida: false, criadaEm: AGORA.toISOString() };
+    const armazenamento = criarArmazenamento({ [CHAVE_TAREFAS]: JSON.stringify({ versao: 2, tarefas: [salva] }) });
+    expect(carregarTarefas(armazenamento, AGORA)).toEqual([salva]);
   });
 
   it('guarda uma cópia dos dados corrompidos em vez de perdê-los', () => {
     const armazenamento = criarArmazenamento({ [CHAVE_TAREFAS]: '{quebrado' });
-    expect(carregarTarefas(armazenamento, AGORA).length).toBe(10);
+    expect(carregarTarefas(armazenamento, AGORA)).toEqual([]);
     expect(armazenamento.dados.get(`${CHAVE_TAREFAS}_corrompido`)).toBe('{quebrado');
   });
 

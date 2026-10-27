@@ -1,6 +1,5 @@
 import { Tarefa, ehCategoria, ehPrioridade, gerarId } from '../models/tarefa';
 import { MESES_CURTOS, lerPrazo, montarPrazo, paraDataLocal } from '../utils/datas';
-import { criarTarefasExemplo } from './tarefas-exemplo';
 
 /**
  * Chave nova, com os dados num "envelope" versionado: { versao, tarefas }.
@@ -30,8 +29,7 @@ export function criarArmazenamentoEmMemoria(inicial: Record<string, string> = {}
  * Lê as tarefas salvas. Ordem de tentativa:
  * 1. dados no formato novo;
  * 2. dados da versão anterior do app, convertidos;
- * 3. tarefas de exemplo (só quando não existe nada salvo).
- * Uma lista vazia salva é respeitada: os exemplos não voltam depois que o usuário apaga tudo.
+ * 3. lista vazia: o app começa sem nenhuma tarefa, só com o que o usuário criar.
  */
 export function carregarTarefas(armazenamento: Armazenamento, agora: Date): Tarefa[] {
   const bruto = armazenamento.getItem(CHAVE_TAREFAS);
@@ -45,7 +43,7 @@ export function carregarTarefas(armazenamento: Armazenamento, agora: Date): Tare
   const antigo = lerJson(armazenamento.getItem(CHAVE_ANTIGA));
   if (Array.isArray(antigo)) return normalizarLista(antigo, agora);
 
-  return criarTarefasExemplo(agora);
+  return [];
 }
 
 export function salvarTarefas(armazenamento: Armazenamento, tarefas: readonly Tarefa[]): void {

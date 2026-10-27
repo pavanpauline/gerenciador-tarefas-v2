@@ -53,14 +53,20 @@
       </div>
 
       <!-- Sugestão no Rodapé do Card -->
-      <div class="suggestion-pill" (click)="sugestaoTarefa ? abrirDetalhesModal(sugestaoTarefa) : null">
+      <div class="suggestion-pill" (click)="abrirSugestao()">
         <div class="suggestion-icon-badge">
           <ion-icon name="flash"></ion-icon>
         </div>
         <div class="suggestion-text-wrap">
-          <span class="suggestion-caption">Sugestão: comece por</span>
+          <span class="suggestion-caption">{{ totalTarefas === 0 ? 'Para começar' : 'Sugestão: comece por' }}</span>
           <strong class="suggestion-title">
-            {{ sugestaoTarefa ? sugestaoTarefa.titulo : 'Todas as tarefas concluídas!' }}
+            @if (sugestaoTarefa) {
+              {{ sugestaoTarefa.titulo }}
+            } @else if (totalTarefas === 0) {
+              Crie sua primeira tarefa
+            } @else {
+              Todas as tarefas concluídas!
+            }
           </strong>
         </div>
       </div>
@@ -156,7 +162,15 @@
           </ion-item-sliding>
         } @empty {
           <div class="empty-pending-state">
-            <p>{{ temFiltroAtivo ? 'Nenhuma tarefa pendente com os filtros selecionados.' : 'Você não tem tarefas pendentes. Parabéns!' }}</p>
+            <p>
+              @if (temFiltroAtivo) {
+                Nenhuma tarefa pendente com os filtros selecionados.
+              } @else if (totalTarefas === 0) {
+                Nenhuma tarefa por aqui ainda. Toque no + para criar a primeira.
+              } @else {
+                Você não tem tarefas pendentes. Parabéns!
+              }
+            </p>
           </div>
         }
       </ion-list>

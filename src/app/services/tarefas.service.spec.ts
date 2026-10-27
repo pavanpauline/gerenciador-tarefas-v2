@@ -7,11 +7,9 @@ describe('TarefasService', () => {
   let service: TarefasService;
   let armazenamento: ReturnType<typeof criarArmazenamentoEmMemoria>;
 
-  /** Cada teste começa com um armazenamento próprio, com uma lista vazia salva (sem os exemplos). */
+  /** Cada teste começa com um armazenamento próprio e vazio. */
   beforeEach(() => {
-    armazenamento = criarArmazenamentoEmMemoria({
-      [CHAVE_TAREFAS]: JSON.stringify({ versao: 2, tarefas: [] }),
-    });
+    armazenamento = criarArmazenamentoEmMemoria();
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({ providers: [{ provide: ARMAZENAMENTO, useValue: armazenamento }] });
     service = TestBed.inject(TarefasService);
@@ -19,10 +17,9 @@ describe('TarefasService', () => {
 
   const salvas = () => JSON.parse(armazenamento.getItem(CHAVE_TAREFAS)!).tarefas;
 
-  it('cria as tarefas de exemplo quando o armazenamento está vazio', () => {
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [{ provide: ARMAZENAMENTO, useValue: criarArmazenamentoEmMemoria() }] });
-    expect(TestBed.inject(TarefasService).tarefas().length).toBe(10);
+  it('começa vazio na primeira vez que o app abre', () => {
+    expect(service.tarefas()).toEqual([]);
+    expect(salvas()).toEqual([]);
   });
 
   it('adiciona a tarefa no topo da lista e salva', async () => {

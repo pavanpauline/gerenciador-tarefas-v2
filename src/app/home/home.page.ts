@@ -274,6 +274,15 @@ export class HomePage {
            !!(this.termoBusca && this.termoBusca.trim() !== '');
   }
 
+  /** Toque na sugestão: abre a tarefa sugerida ou, com a lista vazia, o formulário de nova tarefa. */
+  abrirSugestao() {
+    if (this.sugestaoTarefa) {
+      this.abrirDetalhesModal(this.sugestaoTarefa);
+    } else if (this.totalTarefas === 0) {
+      this.abrirNovaTarefaModal();
+    }
+  }
+
   // --- 1. MODAL: NOVA TAREFA ---
   abrirNovaTarefaModal() {
     this.definirDataHoraPadrao();
