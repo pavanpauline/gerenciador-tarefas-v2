@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, input, output, viewChild 
 import { IonBadge, IonCard, IonCheckbox, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { alertCircleOutline, arrowUndoOutline, cellularOutline, checkmarkCircleOutline, timeOutline, trashOutline } from 'ionicons/icons';
-import { CLASSE_PRIORIDADE, Tarefa } from '../../models/tarefa';
+import { CLASSE_PRIORIDADE, Tarefa, iconeCategoria } from '../../models/tarefa';
 import { estaAtrasada, formatarPrazo } from '../../utils/datas';
+import { ICONES_CATEGORIA } from '../../utils/icones-categoria';
 
 /**
  * Card de uma tarefa na lista, com os gestos de deslizar:
@@ -29,11 +30,12 @@ export class TarefaCardComponent {
   readonly atrasada = computed(() => !this.tarefa().concluida && estaAtrasada(this.tarefa().prazo, this.agora()));
   readonly textoPrazo = computed(() => formatarPrazo(this.tarefa().prazo, this.agora()));
   readonly classePrioridade = computed(() => `priority-tag priority-${CLASSE_PRIORIDADE[this.tarefa().prioridade]}`);
+  readonly iconeCategoria = computed(() => iconeCategoria(this.tarefa().categoria));
 
   private readonly deslizavel = viewChild.required(IonItemSliding);
 
   constructor() {
-    addIcons({ alertCircleOutline, arrowUndoOutline, cellularOutline, checkmarkCircleOutline, timeOutline, trashOutline });
+    addIcons({ alertCircleOutline, arrowUndoOutline, cellularOutline, checkmarkCircleOutline, timeOutline, trashOutline, ...ICONES_CATEGORIA });
   }
 
   /** Botão do gesto para a direita (ou o gesto completo): concluir ou desfazer. */

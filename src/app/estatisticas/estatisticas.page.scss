@@ -691,6 +691,9 @@
 }
 
 // Grid de Categorias
+// Sufixos de CLASSE_CATEGORIA (models/tarefa.ts); cada um tem as cores --cat-<sufixo> no variables.scss
+$categorias: trabalho, estudo, pessoal, saude, casa, financas;
+
 .category-cards-grid {
   display: flex;
   flex-direction: column;
@@ -719,19 +722,11 @@
       justify-content: center;
       font-size: 20px;
 
-      &.cat-badge-trabalho {
-        background: var(--cat-trabalho-bg);
-        color: var(--cat-trabalho);
-      }
-
-      &.cat-badge-estudo {
-        background: var(--cat-estudo-bg);
-        color: var(--cat-estudo);
-      }
-
-      &.cat-badge-pessoal {
-        background: var(--cat-pessoal-bg);
-        color: var(--cat-pessoal);
+      @each $cat in $categorias {
+        &.cat-badge-#{$cat} {
+          background: var(--cat-#{$cat}-bg);
+          color: var(--cat-#{$cat});
+        }
       }
     }
 
@@ -772,9 +767,11 @@
       border-radius: 9999px;
       transition: width 0.3s ease;
 
-      &.fill-trabalho { background: var(--cat-trabalho-solid); }
-      &.fill-estudo { background: var(--cat-estudo-solid); }
-      &.fill-pessoal { background: var(--cat-pessoal-solid); }
+      @each $cat in $categorias {
+        &.fill-#{$cat} {
+          background: var(--cat-#{$cat}-solid);
+        }
+      }
     }
   }
 
@@ -808,6 +805,49 @@
           font-size: 8px;
         }
       }
+    }
+  }
+}
+
+// Sem nenhuma tarefa ainda
+.cat-empty-note {
+  margin: 0;
+  padding: 16px 18px;
+  font-size: 13px;
+  color: var(--app-text-muted);
+  background: var(--app-surface);
+  border: 1px solid var(--app-card-border);
+  border-radius: 18px;
+}
+
+// Categorias que ainda não têm tarefas: uma linha só, em vez de um card vazio para cada
+.cat-unused-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+
+  .cat-unused-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--app-text-muted);
+    margin-right: 2px;
+  }
+
+  .cat-unused-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    border: 1px dashed var(--app-border-strong);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--app-text-2);
+
+    ion-icon {
+      font-size: 13px;
     }
   }
 }

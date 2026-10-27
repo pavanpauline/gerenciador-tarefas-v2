@@ -89,6 +89,16 @@ describe('TarefaFormComponent', () => {
     expect(enviados[0].prazo).toBeUndefined();
   });
 
+  it('oferece todas as categorias, inclusive as novas', () => {
+    const { fixture, form } = montar();
+    const chips = [...fixture.nativeElement.querySelectorAll('fieldset')[0].querySelectorAll('.chip-select-btn')] as HTMLButtonElement[];
+
+    expect(chips.map((chip) => chip.textContent?.trim())).toEqual(['Trabalho', 'Estudo', 'Pessoal', 'Saúde', 'Casa', 'Finanças']);
+
+    chips[5].click();
+    expect(form.categoria()).toBe('Finanças');
+  });
+
   it('envia ao tocar no botão do formulário', () => {
     const { fixture, form, enviados, botao } = montar();
     form.titulo.set('Pelo botão');

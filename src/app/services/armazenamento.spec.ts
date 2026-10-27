@@ -21,6 +21,19 @@ describe('armazenamento', () => {
     expect(carregarTarefas(armazenamento, AGORA)).toEqual([salva]);
   });
 
+  it('mantém as categorias novas (Saúde, Casa e Finanças)', () => {
+    const salvas = ['Saúde', 'Casa', 'Finanças'].map((categoria, i) => ({
+      id: `n${i}`,
+      titulo: categoria,
+      categoria,
+      prioridade: 'Baixa',
+      concluida: false,
+      criadaEm: AGORA.toISOString(),
+    }));
+    const armazenamento = criarArmazenamento({ [CHAVE_TAREFAS]: JSON.stringify({ versao: 2, tarefas: salvas }) });
+    expect(carregarTarefas(armazenamento, AGORA).map((t) => t.categoria)).toEqual(['Saúde', 'Casa', 'Finanças']);
+  });
+
   it('guarda uma cópia dos dados corrompidos em vez de perdê-los', () => {
     const armazenamento = criarArmazenamento({ [CHAVE_TAREFAS]: '{quebrado' });
     expect(carregarTarefas(armazenamento, AGORA)).toEqual([]);

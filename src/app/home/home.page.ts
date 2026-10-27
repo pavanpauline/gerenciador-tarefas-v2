@@ -6,7 +6,6 @@ import {
   add,
   alertCircleOutline,
   arrowBackOutline,
-  briefcaseOutline,
   calendarOutline,
   cellularOutline,
   checkmarkCircle,
@@ -15,11 +14,8 @@ import {
   closeOutline,
   createOutline,
   flash,
-  folderOutline,
   listOutline,
   optionsOutline,
-  personOutline,
-  schoolOutline,
   searchOutline,
   serverOutline,
   statsChartOutline,
@@ -43,6 +39,7 @@ import {
 import { escolherSugestao } from '../services/sugestao';
 import { TarefaExcluida, TarefasService } from '../services/tarefas.service';
 import { estaAtrasada, formatarDataCabecalho, formatarDataCompleta, formatarPrazo } from '../utils/datas';
+import { ICONES_CATEGORIA } from '../utils/icones-categoria';
 
 /**
  * Tela principal. Todo o estado é feito de signals: a tela se atualiza sozinha
@@ -143,8 +140,7 @@ export class HomePage {
       add,
       alertCircleOutline,
       arrowBackOutline,
-      briefcaseOutline,
-      calendarOutline,
+          calendarOutline,
       cellularOutline,
       checkmarkCircle,
       chevronDownOutline,
@@ -152,17 +148,15 @@ export class HomePage {
       closeOutline,
       createOutline,
       flash,
-      folderOutline,
-      listOutline,
+          listOutline,
       optionsOutline,
-      personOutline,
-      schoolOutline,
-      searchOutline,
+              searchOutline,
       serverOutline,
       statsChartOutline,
       timeOutline,
       trash,
       trashOutline,
+      ...ICONES_CATEGORIA,
     });
   }
 

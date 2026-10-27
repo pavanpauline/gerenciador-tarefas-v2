@@ -155,6 +155,16 @@
         font-size: 10px;
       }
 
+      .category-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+
+        .category-icon {
+          font-size: 12px;
+        }
+      }
+
       .deadline-wrap {
         display: inline-flex;
         align-items: center;

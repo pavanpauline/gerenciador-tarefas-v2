@@ -26,6 +26,7 @@ describe('calcularEstatisticas', () => {
     expect(e).toMatchObject({ total: 3, concluidas: 1, pendentes: 2, taxaConclusao: 33 });
     expect(e.porPrioridade.find((p) => p.prioridade === 'Média')).toMatchObject({ total: 2, concluidas: 1, taxaConclusao: 50 });
     expect(e.porCategoria.find((c) => c.categoria === 'Estudo')?.percentualDoTotal).toBe(33);
+    expect(e.porCategoria.map((c) => c.categoria)).toEqual(['Trabalho', 'Estudo', 'Pessoal', 'Saúde', 'Casa', 'Finanças']);
   });
 
   it('monta os últimos 7 dias, do mais antigo até hoje', () => {

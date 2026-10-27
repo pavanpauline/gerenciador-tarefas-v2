@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, linkedSignal, outp
 import { FormsModule } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, briefcaseOutline, cellularOutline, checkmarkOutline, folderOutline, personOutline, schoolOutline } from 'ionicons/icons';
+import { add, cellularOutline, checkmarkOutline } from 'ionicons/icons';
 import {
   CATEGORIAS,
   CLASSE_PRIORIDADE,
@@ -13,6 +13,7 @@ import {
   iconeCategoria,
 } from '../../models/tarefa';
 import { montarPrazo, paraDataLocal, separarPrazo, sugerirPrazo } from '../../utils/datas';
+import { ICONES_CATEGORIA } from '../../utils/icones-categoria';
 
 type AtalhoPrazo = 'hoje' | 'amanha' | 'sem-prazo';
 
@@ -65,7 +66,7 @@ export class TarefaFormComponent {
   });
 
   constructor() {
-    addIcons({ add, briefcaseOutline, cellularOutline, checkmarkOutline, folderOutline, personOutline, schoolOutline });
+    addIcons({ add, cellularOutline, checkmarkOutline, ...ICONES_CATEGORIA });
   }
 
   usarAtalho(atalho: AtalhoPrazo) {

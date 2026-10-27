@@ -12,8 +12,8 @@ describe('EstatisticasPage', () => {
   ];
 
   /** Cria o dashboard dentro do modal (isModal = true) ou como página. */
-  function montar(isModal: boolean) {
-    configurarComTarefas(tarefas, [provideRouter([])]);
+  function montar(isModal: boolean, lista = tarefas) {
+    configurarComTarefas(lista, [provideRouter([])]);
     const fixture = TestBed.createComponent(EstatisticasPage);
     fixture.componentRef.setInput('isModal', isModal);
     fixture.detectChanges();
@@ -45,6 +45,24 @@ describe('EstatisticasPage', () => {
     expect(descricao).toContain('últimos 7 dias');
     expect(descricao).toContain('hoje 1');
     expect(el.querySelectorAll('.chart-col').length).toBe(7);
+  });
+
+  it('mostra cards só das categorias com tarefas, da mais usada para a menos usada', () => {
+    const { el } = montar(true, [
+      criarTarefa({ id: 'consulta', categoria: 'Saúde' }),
+      criarTarefa({ id: 'boleto', categoria: 'Finanças' }),
+      criarTarefa({ id: 'aluguel', categoria: 'Finanças', concluida: true, concluidaEm: momentoEm(0) }),
+    ]);
+    expect(textos(el, '.cat-name')).toEqual(['Finanças', 'Saúde']);
+    expect(el.querySelector('.cat-icon-badge')?.classList.contains('cat-badge-financas')).toBe(true);
+    expect(textos(el, '.cat-unused-chip')).toEqual(['Trabalho', 'Estudo', 'Pessoal', 'Casa']);
+  });
+
+  it('sem tarefas, não mostra cards de categoria vazios', () => {
+    const { el } = montar(true, []);
+    expect(el.querySelectorAll('.category-metric-card').length).toBe(0);
+    expect(el.querySelector('.cat-empty-note')?.textContent).toContain('Crie tarefas');
+    expect(el.querySelector('.cat-unused-row')).toBeNull();
   });
 
   it('dentro do modal tem o botão de fechar', () => {

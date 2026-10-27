@@ -27,6 +27,11 @@ describe('TarefaCardComponent', () => {
     expect(el.querySelector('ion-badge')?.classList.contains('priority-alta')).toBe(true);
   });
 
+  it('mostra as categorias novas', () => {
+    const el = montar(criarTarefa({ id: '1', categoria: 'Finanças' }));
+    expect(el.querySelector('.category-name')?.textContent?.trim()).toBe('Finanças');
+  });
+
   it('destaca o prazo vencido e avisa os leitores de tela', () => {
     const el = montar(criarTarefa({ id: '1', prazo: prazoEm(-1, '18:00') }));
     expect(el.querySelector('.deadline-wrap')?.classList.contains('is-late')).toBe(true);

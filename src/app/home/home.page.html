@@ -392,7 +392,12 @@
                   [class.is-selected]="filtroCategoria() === cat"
                   [attr.aria-pressed]="filtroCategoria() === cat"
                   (click)="filtroCategoria.set(cat)"
-                >{{ cat }}</button>
+                >
+                  @if (cat !== 'Todas') {
+                    <ion-icon [name]="iconeCategoria(cat)" aria-hidden="true"></ion-icon>
+                  }
+                  <span>{{ cat }}</span>
+                </button>
               }
             </div>
           </div>

@@ -6,7 +6,6 @@ import {
   alarmOutline,
   alertCircleOutline,
   arrowBackOutline,
-  briefcaseOutline,
   calendarOutline,
   cellularOutline,
   chevronForwardOutline,
@@ -14,18 +13,16 @@ import {
   flagOutline,
   flame,
   flash,
-  folderOutline,
   layersOutline,
-  personOutline,
-  schoolOutline,
   statsChart,
   timeOutline,
   trendingUpOutline,
 } from 'ionicons/icons';
-import { CLASSE_PRIORIDADE, Tarefa, iconeCategoria } from '../models/tarefa';
+import { CLASSE_CATEGORIA, CLASSE_PRIORIDADE, Categoria, Tarefa, iconeCategoria } from '../models/tarefa';
 import { gerarInsight } from '../services/estatisticas';
 import { TarefasService } from '../services/tarefas.service';
 import { estaAtrasada, formatarPrazo } from '../utils/datas';
+import { ICONES_CATEGORIA } from '../utils/icones-categoria';
 
 /**
  * Dashboard. Funciona como página (rota /estatisticas) ou dentro do modal da Home.
@@ -50,10 +47,19 @@ export class EstatisticasPage {
 
   readonly estatisticas = this.tarefasService.estatisticas;
   readonly insight = computed(() => gerarInsight(this.estatisticas()));
-  readonly categoriaMaisAtiva = computed(() => {
-    const [maisAtiva] = [...this.estatisticas().porCategoria].sort((a, b) => b.total - a.total);
-    return maisAtiva && maisAtiva.total > 0 ? maisAtiva.categoria : 'Equilibrado';
-  });
+  /** Categorias com pelo menos uma tarefa, da mais usada para a menos usada (empate: ordem padrão). */
+  readonly categoriasEmUso = computed(() =>
+    this.estatisticas()
+      .porCategoria.filter((c) => c.total > 0)
+      .sort((a, b) => b.total - a.total),
+  );
+  /** Categorias ainda sem tarefas: aparecem só como uma linha discreta, para o dashboard não ficar comprido. */
+  readonly categoriasSemTarefas = computed(() =>
+    this.estatisticas()
+      .porCategoria.filter((c) => c.total === 0)
+      .map((c) => c.categoria),
+  );
+  readonly categoriaMaisAtiva = computed(() => this.categoriasEmUso()[0]?.categoria ?? 'Equilibrado');
 
   /** Altura de cada barra do gráfico, em % da maior (mínimo 1 para não dividir por zero). */
   readonly maiorDia = computed(() => Math.max(1, ...this.estatisticas().ultimos7Dias.map((d) => d.concluidas)));
@@ -71,13 +77,13 @@ export class EstatisticasPage {
   );
 
   readonly classePrioridade = CLASSE_PRIORIDADE;
+  readonly classeCategoria: Record<Categoria, string> = CLASSE_CATEGORIA;
 
   constructor() {
     addIcons({
       alarmOutline,
       alertCircleOutline,
       arrowBackOutline,
-      briefcaseOutline,
       calendarOutline,
       cellularOutline,
       chevronForwardOutline,
@@ -85,13 +91,11 @@ export class EstatisticasPage {
       flagOutline,
       flame,
       flash,
-      folderOutline,
       layersOutline,
-      personOutline,
-      schoolOutline,
       statsChart,
       timeOutline,
       trendingUpOutline,
+      ...ICONES_CATEGORIA,
     });
   }
 

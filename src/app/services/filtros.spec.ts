@@ -40,6 +40,18 @@ describe('filtros', () => {
     expect(ids(filtrarTarefas(LISTA, { ...SEM_FILTRO, prioridade: 'Baixa', status: 'Pendentes' }))).toEqual([]);
   });
 
+  it('acha as categorias novas pela busca sem acento e pelo filtro', () => {
+    const lista = [
+      ...LISTA,
+      tarefa({ id: 'consulta', titulo: 'Consulta no dentista', categoria: 'Saúde' }),
+      tarefa({ id: 'boleto', titulo: 'Pagar boleto', categoria: 'Finanças' }),
+      tarefa({ id: 'louca', titulo: 'Lavar a louça', categoria: 'Casa' }),
+    ];
+    expect(ids(filtrarTarefas(lista, { ...SEM_FILTRO, termo: 'saude' }))).toEqual(['consulta']);
+    expect(ids(filtrarTarefas(lista, { ...SEM_FILTRO, termo: 'FINANCAS' }))).toEqual(['boleto']);
+    expect(ids(filtrarTarefas(lista, { ...SEM_FILTRO, categoria: 'Casa' }))).toEqual(['louca']);
+  });
+
   it('sabe quando há filtro ativo', () => {
     expect(temFiltroAtivo(SEM_FILTRO)).toBe(false);
     expect(temFiltroAtivo({ ...SEM_FILTRO, termo: '   ' })).toBe(false);

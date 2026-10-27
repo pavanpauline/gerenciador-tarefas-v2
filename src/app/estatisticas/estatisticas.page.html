@@ -76,7 +76,7 @@
         @if (e.sequenciaDias > 0) {
           <span class="section-tag streak-tag">
             <ion-icon name="flame" aria-hidden="true"></ion-icon>
-            {{ e.sequenciaDias }} {{ e.sequenciaDias === 1 ? 'dia' : 'dias' }} seguidos
+            {{ e.sequenciaDias }} {{ e.sequenciaDias === 1 ? 'dia seguido' : 'dias seguidos' }}
           </span>
         }
       </div>
@@ -216,10 +216,10 @@
       </div>
 
       <div class="category-cards-grid">
-        @for (cat of e.porCategoria; track cat.categoria) {
+        @for (cat of categoriasEmUso(); track cat.categoria) {
           <div class="category-metric-card">
             <div class="cat-card-top">
-              <div class="cat-icon-badge" [class]="'cat-badge-' + cat.categoria.toLowerCase()" aria-hidden="true">
+              <div class="cat-icon-badge" [class]="'cat-badge-' + classeCategoria[cat.categoria]" aria-hidden="true">
                 <ion-icon [name]="iconeCategoria(cat.categoria)"></ion-icon>
               </div>
               <div class="cat-title-wrap">
@@ -232,7 +232,7 @@
             </div>
 
             <div class="mini-progress-bar" aria-hidden="true">
-              <div class="mini-fill cat-fill" [class]="'fill-' + cat.categoria.toLowerCase()" [style.width.%]="cat.taxaConclusao"></div>
+              <div class="mini-fill cat-fill" [class]="'fill-' + classeCategoria[cat.categoria]" [style.width.%]="cat.taxaConclusao"></div>
             </div>
 
             <div class="cat-details-row">
@@ -246,8 +246,22 @@
               </div>
             </div>
           </div>
+        } @empty {
+          <p class="cat-empty-note">Crie tarefas para acompanhar como vai cada categoria.</p>
         }
       </div>
+
+      @if (categoriasEmUso().length > 0 && categoriasSemTarefas().length > 0) {
+        <div class="cat-unused-row">
+          <span class="cat-unused-label">Sem tarefas:</span>
+          @for (categoria of categoriasSemTarefas(); track categoria) {
+            <span class="cat-unused-chip">
+              <ion-icon [name]="iconeCategoria(categoria)" aria-hidden="true"></ion-icon>
+              {{ categoria }}
+            </span>
+          }
+        </div>
+      }
     </section>
 
     <div class="stats-bottom-spacer"></div>

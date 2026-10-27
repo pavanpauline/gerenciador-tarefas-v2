@@ -1,8 +1,8 @@
 export type Prioridade = 'Alta' | 'Média' | 'Baixa';
-export type Categoria = 'Trabalho' | 'Estudo' | 'Pessoal';
+export type Categoria = 'Trabalho' | 'Estudo' | 'Pessoal' | 'Saúde' | 'Casa' | 'Finanças';
 
 export const PRIORIDADES: readonly Prioridade[] = ['Alta', 'Média', 'Baixa'];
-export const CATEGORIAS: readonly Categoria[] = ['Trabalho', 'Estudo', 'Pessoal'];
+export const CATEGORIAS: readonly Categoria[] = ['Trabalho', 'Estudo', 'Pessoal', 'Saúde', 'Casa', 'Finanças'];
 
 /** Peso usado na ordenação: quanto menor, mais urgente. */
 export const PESO_PRIORIDADE: Record<Prioridade, number> = { Alta: 1, Média: 2, Baixa: 3 };
@@ -10,10 +10,24 @@ export const PESO_PRIORIDADE: Record<Prioridade, number> = { Alta: 1, Média: 2,
 /** Sufixo das classes CSS de cada prioridade (sem acento): priority-alta, priority-media, priority-baixa. */
 export const CLASSE_PRIORIDADE: Record<Prioridade, string> = { Alta: 'alta', Média: 'media', Baixa: 'baixa' };
 
+/** Ícone (nome do Ionicons) de cada categoria. Os ícones são registrados em utils/icones-categoria.ts. */
 const ICONE_CATEGORIA: Record<Categoria, string> = {
   Trabalho: 'briefcase-outline',
   Estudo: 'school-outline',
   Pessoal: 'person-outline',
+  Saúde: 'fitness-outline',
+  Casa: 'home-outline',
+  Finanças: 'wallet-outline',
+};
+
+/** Sufixo das classes CSS de cada categoria (sem acento): cat-badge-saude, fill-financas... */
+export const CLASSE_CATEGORIA: Record<Categoria, string> = {
+  Trabalho: 'trabalho',
+  Estudo: 'estudo',
+  Pessoal: 'pessoal',
+  Saúde: 'saude',
+  Casa: 'casa',
+  Finanças: 'financas',
 };
 
 export interface Tarefa {

@@ -29,7 +29,10 @@
         <span class="task-details">
           <span class="task-title">{{ tarefa().titulo }}</span>
           <span class="task-meta">
-            <span class="category-name">{{ tarefa().categoria }}</span>
+            <span class="category-name">
+              <ion-icon [name]="iconeCategoria()" class="category-icon" aria-hidden="true"></ion-icon>
+              {{ tarefa().categoria }}
+            </span>
             <span class="meta-dot" aria-hidden="true">•</span>
             @if (tarefa().concluida) {
               <span>Concluída</span>
